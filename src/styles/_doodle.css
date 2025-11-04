@@ -1,0 +1,240 @@
+/* Fresh rewrite: centered 16:9 stage, two dot layers, @property, trig, filters, anchor-positioning with fallback */
+
+/* Animatable properties */
+@property --t {
+	syntax: "<number>";
+	inherits: false;
+	initial-value: 0;
+}
+@property --theta {
+	syntax: "<angle>";
+	inherits: false;
+	initial-value: 0deg;
+}
+@property --hue {
+	syntax: "<number>";
+	inherits: false;
+	initial-value: 210;
+}
+
+/* Center the slide */
+[intro].slide {
+	display: grid;
+	place-items: center;
+}
+
+/* Stage (16:9, ≥80% width, no clipping) */
+.stage {
+	width: 85%;
+	aspect-ratio: 16 / 9;
+	position: relative;
+	display: grid;
+	place-items: center;
+	margin-inline: auto;
+	overflow: visible;
+	/* 3D context for tilted rings */
+	perspective: 900px;
+	transform-style: preserve-3d;
+	/* mouse vars (percentage) */
+	--mx: 50;
+	--my: 50;
+}
+
+/* Title */
+.title {
+	margin: 0;
+	font-size: clamp(3rem, 8vw, 7rem);
+	line-height: 1;
+	background: linear-gradient(
+		90deg,
+		hsl(var(--hue) 90% 70%),
+		hsl(calc(var(--hue) + 60) 90% 70%),
+		hsl(calc(var(--hue) + 120) 90% 70%)
+	);
+	-webkit-background-clip: text;
+	background-clip: text;
+	color: transparent;
+	filter: drop-shadow(0 2px 6px hsl(0 0% 0% / 0.35));
+	animation:
+		title-hue 18s linear infinite,
+		drift 24s ease-in-out infinite;
+	position: relative;
+	z-index: 1;
+}
+
+/* Fields */
+.field {
+	position: absolute;
+	inset: 0;
+	display: grid;
+	place-items: center;
+	pointer-events: none;
+	transform-origin: center;
+	transform-style: preserve-3d;
+	/* per-field tilt and speed defaults */
+	--tilt-x: 0deg;
+	--tilt-y: 0deg;
+	--tilt-z: 0deg;
+	--orbit-dur: 28s;
+	transform: rotateX(var(--tilt-x)) rotateY(var(--tilt-y))
+		rotateZ(var(--tilt-z));
+}
+.field--far {
+	filter: blur(2px);
+	opacity: 0.6;
+}
+/* Per-ring parameters */
+.field--far {
+	--n: 14;
+	--base-radius: min(26vmin, 40vh);
+	--tilt-x: 22deg;
+	--tilt-y: -12deg;
+	--tilt-z: 4deg;
+	--orbit-dur: 44s;
+}
+.field--inner {
+	--n: 12;
+	--base-radius: min(14vmin, 22vh);
+	--tilt-x: 35deg;
+	--tilt-y: 0deg;
+	--tilt-z: -6deg;
+	--orbit-dur: 36s;
+}
+.field--near {
+	--n: 20;
+	--base-radius: min(20vmin, 30vh);
+	--tilt-x: -10deg;
+	--tilt-y: 15deg;
+	--tilt-z: 0deg;
+	--orbit-dur: 28s;
+}
+
+/* Dots */
+.dot {
+	--i: 0;
+	/* --n and --base-radius are provided by each field */
+	--angle: calc((var(--i) / var(--n)) * 1turn);
+	position: absolute;
+	width: 1.25rem;
+	height: 1.25rem;
+	border-radius: 50%;
+	background: hsl(calc(var(--hue) + var(--i) * 8) 90% 60% / 0.85);
+	filter: drop-shadow(
+			0 0 8px hsl(calc(var(--hue) + var(--i) * 8) 90% 60% / 0.9)
+		)
+		saturate(1.15);
+	translate: 0 0;
+	transform-origin: center;
+	/* Use longhands to keep orbit in perfect sync across dots */
+	animation-name: orbit, pulse, dot-hue;
+	animation-duration: var(--orbit-dur), 2.4s, 20s;
+	animation-timing-function: linear, ease-in-out, linear;
+	animation-iteration-count: infinite, infinite, infinite;
+	/* orbit has no delay, pulse and hue are staggered */
+	animation-delay: 0s, calc(var(--i) * 70ms), calc(var(--i) * 40ms);
+}
+
+/* Title hue and dots hue stay coherent */
+@keyframes title-hue {
+	to {
+		--hue: 570;
+	}
+}
+@keyframes dot-hue {
+	0% {
+		filter: drop-shadow(0 0 8px hsl(var(--hue) 90% 60% / 0.9)) saturate(1.15);
+	}
+	50% {
+		filter: drop-shadow(0 0 8px hsl(calc(var(--hue) + 60) 90% 60% / 0.9))
+			saturate(1.15);
+	}
+	100% {
+		filter: drop-shadow(0 0 8px hsl(calc(var(--hue) + 120) 90% 60% / 0.9))
+			saturate(1.15);
+	}
+}
+
+/* Orbit and pulse */
+@keyframes orbit {
+	0% {
+		--t: 0;
+		--theta: 0deg;
+	}
+	50% {
+		--t: 1;
+		--theta: 180deg;
+	}
+	100% {
+		--t: 2;
+		--theta: 360deg;
+	}
+}
+@keyframes pulse {
+	0%,
+	100% {
+		scale: 0.9;
+	}
+	50% {
+		scale: 1.15;
+	}
+}
+
+/* Polar → Cartesian with trig; default center orbit */
+.field .dot {
+	/* Constant radius per ring to form closed, equidistant circles */
+	--r: var(--base-radius);
+	left: 50%;
+	top: 50%;
+	translate: calc(cos(var(--theta) + var(--angle)) * var(--r))
+		calc(sin(var(--theta) + var(--angle)) * var(--r));
+}
+
+/* Prefer Anchor Positioning when available: orbit around title */
+@supports (anchor-name: --x) {
+	.title {
+		anchor-name: --title;
+	}
+	.field .dot {
+		position-anchor: --title;
+		left: anchor(left);
+		top: anchor(top);
+	}
+}
+
+/* Gentle title drift */
+@keyframes drift {
+	0% {
+		translate: 0 0;
+	}
+	25% {
+		translate: 1% -1%;
+	}
+	50% {
+		translate: 0.5% 1%;
+	}
+	75% {
+		translate: -1% 0;
+	}
+	100% {
+		translate: 0 0;
+	}
+}
+
+/* Mouse proximity sizing (JS updates --mx/--my) */
+.field .dot {
+	/* unitless distance from center in percentage points */
+	--dx: calc(50 - var(--mx));
+	--dy: calc(50 - var(--my));
+	--dist: calc(hypot(var(--dx), var(--dy))); /* 0..~70 */
+	/* map distance to a size delta expressed in rem to avoid unit mixing */
+	width: clamp(1rem, calc(3rem - var(--dist) * 0.014rem), 3rem);
+	height: clamp(1rem, calc(3rem - var(--dist) * 0.014rem), 3rem);
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+	.title,
+	.field .dot {
+		animation: none;
+	}
+}

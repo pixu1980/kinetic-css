@@ -1,0 +1,214 @@
+@property --t {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+
+@property --theta {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@property --hue {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 210;
+}
+
+[intro].slide {
+  place-items: center;
+  display: grid;
+}
+
+.stage {
+  aspect-ratio: 16 / 9;
+  perspective: 900px;
+  width: 85%;
+  transform-style: preserve-3d;
+  --mx: 50;
+  --my: 50;
+  place-items: center;
+  margin-inline: auto;
+  display: grid;
+  position: relative;
+  overflow: visible;
+}
+
+.title {
+  background: linear-gradient(90deg, hsl(var(--hue) 90% 70%), hsl(calc(var(--hue)  + 60) 90% 70%), hsl(calc(var(--hue)  + 120) 90% 70%));
+  color: #0000;
+  filter: drop-shadow(0 2px 6px #00000059);
+  z-index: 1;
+  background-clip: text;
+  margin: 0;
+  font-size: clamp(3rem, 8vw, 7rem);
+  line-height: 1;
+  animation: 18s linear infinite title-hue, 24s ease-in-out infinite drift;
+  position: relative;
+}
+
+.field {
+  pointer-events: none;
+  transform-origin: center;
+  transform-style: preserve-3d;
+  --tilt-x: 0deg;
+  --tilt-y: 0deg;
+  --tilt-z: 0deg;
+  --orbit-dur: 28s;
+  transform: rotateX(var(--tilt-x)) rotateY(var(--tilt-y)) rotateZ(var(--tilt-z));
+  place-items: center;
+  display: grid;
+  position: absolute;
+  inset: 0;
+}
+
+.field--far {
+  filter: blur(2px);
+  opacity: .6;
+  --n: 14;
+  --base-radius: min(26vmin, 40vh);
+  --tilt-x: 22deg;
+  --tilt-y: -12deg;
+  --tilt-z: 4deg;
+  --orbit-dur: 44s;
+}
+
+.field--inner {
+  --n: 12;
+  --base-radius: min(14vmin, 22vh);
+  --tilt-x: 35deg;
+  --tilt-y: 0deg;
+  --tilt-z: -6deg;
+  --orbit-dur: 36s;
+}
+
+.field--near {
+  --n: 20;
+  --base-radius: min(20vmin, 30vh);
+  --tilt-x: -10deg;
+  --tilt-y: 15deg;
+  --tilt-z: 0deg;
+  --orbit-dur: 28s;
+}
+
+.dot {
+  --i: 0;
+  --angle: calc((var(--i) / var(--n)) * 1turn);
+  background: hsl(calc(var(--hue)  + var(--i) * 8) 90% 60% / .85);
+  width: 1.25rem;
+  height: 1.25rem;
+  filter: drop-shadow(0 0 8px hsl(calc(var(--hue)  + var(--i) * 8) 90% 60% / .9)) saturate(1.15);
+  transform-origin: center;
+  animation-name: orbit, pulse, dot-hue;
+  animation-duration: var(--orbit-dur), 2.4s, 20s;
+  animation-timing-function: linear, ease-in-out, linear;
+  animation-iteration-count: infinite, infinite, infinite;
+  animation-delay: 0s, calc(var(--i) * 70ms), calc(var(--i) * 40ms);
+  border-radius: 50%;
+  position: absolute;
+  translate: 0;
+}
+
+@keyframes title-hue {
+  to {
+    --hue: 570;
+  }
+}
+
+@keyframes dot-hue {
+  0% {
+    filter: drop-shadow(0 0 8px hsl(var(--hue) 90% 60% / .9)) saturate(1.15);
+  }
+
+  50% {
+    filter: drop-shadow(0 0 8px hsl(calc(var(--hue)  + 60) 90% 60% / .9)) saturate(1.15);
+  }
+
+  100% {
+    filter: drop-shadow(0 0 8px hsl(calc(var(--hue)  + 120) 90% 60% / .9)) saturate(1.15);
+  }
+}
+
+@keyframes orbit {
+  0% {
+    --t: 0;
+    --theta: 0deg;
+  }
+
+  50% {
+    --t: 1;
+    --theta: 180deg;
+  }
+
+  100% {
+    --t: 2;
+    --theta: 360deg;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    scale: .9;
+  }
+
+  50% {
+    scale: 1.15;
+  }
+}
+
+.field .dot {
+  --r: var(--base-radius);
+  translate: calc(cos(var(--theta)  + var(--angle)) * var(--r)) calc(sin(var(--theta)  + var(--angle)) * var(--r));
+  top: 50%;
+  left: 50%;
+}
+
+@supports (anchor-name: --x) {
+  .title {
+    anchor-name: --title;
+  }
+
+  .field .dot {
+    position-anchor: --title;
+    left: anchor(left);
+    top: anchor(top);
+  }
+}
+
+@keyframes drift {
+  0% {
+    translate: 0;
+  }
+
+  25% {
+    translate: 1% -1%;
+  }
+
+  50% {
+    translate: .5% 1%;
+  }
+
+  75% {
+    translate: -1%;
+  }
+
+  100% {
+    translate: 0;
+  }
+}
+
+.field .dot {
+  --dx: calc(50 - var(--mx));
+  --dy: calc(50 - var(--my));
+  --dist: calc(hypot(var(--dx), var(--dy)));
+  width: clamp(1rem, calc(3rem - var(--dist) * .014rem), 3rem);
+  height: clamp(1rem, calc(3rem - var(--dist) * .014rem), 3rem);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .title, .field .dot {
+    animation: none;
+  }
+}
+/*# sourceMappingURL=kinetic-css.1918779b.css.map */
