@@ -1,17 +1,17 @@
 @property --t {
-  syntax: "<number>";
+  syntax: '<number>';
   inherits: false;
   initial-value: 0;
 }
 
 @property --theta {
-  syntax: "<angle>";
+  syntax: '<angle>';
   inherits: false;
   initial-value: 0deg;
 }
 
 @property --hue {
-  syntax: "<number>";
+  syntax: '<number>';
   inherits: false;
   initial-value: 210;
 }
@@ -36,7 +36,7 @@
 }
 
 .title {
-  background: linear-gradient(90deg, hsl(var(--hue) 90% 70%), hsl(calc(var(--hue)  + 60) 90% 70%), hsl(calc(var(--hue)  + 120) 90% 70%));
+  background: linear-gradient(90deg, hsl(var(--hue) 90% 70%), hsl(calc(var(--hue) + 60) 90% 70%), hsl(calc(var(--hue) + 120) 90% 70%));
   color: #0000;
   filter: drop-shadow(0 2px 6px #00000059);
   z-index: 1;
@@ -44,7 +44,9 @@
   margin: 0;
   font-size: clamp(3rem, 8vw, 7rem);
   line-height: 1;
-  animation: 18s linear infinite title-hue, 24s ease-in-out infinite drift;
+  animation:
+    18s linear infinite title-hue,
+    24s ease-in-out infinite drift;
   position: relative;
 }
 
@@ -65,7 +67,7 @@
 
 .field--far {
   filter: blur(2px);
-  opacity: .6;
+  opacity: 0.6;
   --n: 14;
   --base-radius: min(26vmin, 40vh);
   --tilt-x: 22deg;
@@ -95,10 +97,10 @@
 .dot {
   --i: 0;
   --angle: calc((var(--i) / var(--n)) * 1turn);
-  background: hsl(calc(var(--hue)  + var(--i) * 8) 90% 60% / .85);
+  background: hsl(calc(var(--hue) + var(--i) * 8) 90% 60% / 0.85);
   width: 1.25rem;
   height: 1.25rem;
-  filter: drop-shadow(0 0 8px hsl(calc(var(--hue)  + var(--i) * 8) 90% 60% / .9)) saturate(1.15);
+  filter: drop-shadow(0 0 8px hsl(calc(var(--hue) + var(--i) * 8) 90% 60% / 0.9)) saturate(1.15);
   transform-origin: center;
   animation-name: orbit, pulse, dot-hue;
   animation-duration: var(--orbit-dur), 2.4s, 20s;
@@ -118,15 +120,15 @@
 
 @keyframes dot-hue {
   0% {
-    filter: drop-shadow(0 0 8px hsl(var(--hue) 90% 60% / .9)) saturate(1.15);
+    filter: drop-shadow(0 0 8px hsl(var(--hue) 90% 60% / 0.9)) saturate(1.15);
   }
 
   50% {
-    filter: drop-shadow(0 0 8px hsl(calc(var(--hue)  + 60) 90% 60% / .9)) saturate(1.15);
+    filter: drop-shadow(0 0 8px hsl(calc(var(--hue) + 60) 90% 60% / 0.9)) saturate(1.15);
   }
 
   100% {
-    filter: drop-shadow(0 0 8px hsl(calc(var(--hue)  + 120) 90% 60% / .9)) saturate(1.15);
+    filter: drop-shadow(0 0 8px hsl(calc(var(--hue) + 120) 90% 60% / 0.9)) saturate(1.15);
   }
 }
 
@@ -148,8 +150,9 @@
 }
 
 @keyframes pulse {
-  0%, 100% {
-    scale: .9;
+  0%,
+  100% {
+    scale: 0.9;
   }
 
   50% {
@@ -159,7 +162,7 @@
 
 .field .dot {
   --r: var(--base-radius);
-  translate: calc(cos(var(--theta)  + var(--angle)) * var(--r)) calc(sin(var(--theta)  + var(--angle)) * var(--r));
+  translate: calc(cos(var(--theta) + var(--angle)) * var(--r)) calc(sin(var(--theta) + var(--angle)) * var(--r));
   top: 50%;
   left: 50%;
 }
@@ -186,7 +189,7 @@
   }
 
   50% {
-    translate: .5% 1%;
+    translate: 0.5% 1%;
   }
 
   75% {
@@ -202,12 +205,13 @@
   --dx: calc(50 - var(--mx));
   --dy: calc(50 - var(--my));
   --dist: calc(hypot(var(--dx), var(--dy)));
-  width: clamp(1rem, calc(3rem - var(--dist) * .014rem), 3rem);
-  height: clamp(1rem, calc(3rem - var(--dist) * .014rem), 3rem);
+  width: clamp(1rem, calc(3rem - var(--dist) * 0.014rem), 3rem);
+  height: clamp(1rem, calc(3rem - var(--dist) * 0.014rem), 3rem);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .title, .field .dot {
+  .title,
+  .field .dot {
     animation: none;
   }
 }
