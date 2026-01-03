@@ -4,20 +4,22 @@
   initial-value: 210;
 }
 
-[intro].slide {
+section[intro] {
   place-items: center;
   display: grid;
 }
 
 .stage {
-  --orbit-inner-size: 275px;
-  --orbit-middle-size: 440px;
-  --orbit-outer-size: 605px;
+  --orbit-inner-size: 260px;
+  --orbit-middle-size: 335px;
+  --orbit-outer-size: 410px;
+  --orbit-fourth-size: 485px;
+  --orbit-fifth-size: 560px;
   --title-x: 50%;
   --title-y: 50%;
   --title-offset: 1rem;
   width: 85%;
-  height: var(--orbit-outer-size);
+  height: var(--orbit-fifth-size);
   --hue: 210;
   margin: auto;
   position: relative;
@@ -31,7 +33,7 @@
 }
 
 .stage {
-  animation: 18s linear infinite hue-cycle;
+  animation: 6s linear infinite hue-cycle;
 }
 
 .system {
@@ -75,8 +77,8 @@
   border-style: solid;
   border-color: oklch(.7 .15 calc(var(--hue) * 1deg) / calc(.3 + var(--orbit-opacity, 0)));
   pointer-events: none;
-  left: var(--title-x, 50%);
-  top: var(--title-y, 50%);
+  left: var(--orbit-x, var(--title-x, 50%));
+  top: var(--orbit-y, var(--title-y, 50%));
   transform-origin: center;
   transform: translate(-50%, -50%) rotateZ(var(--orbit-rotate, 0deg));
   border-radius: 50%;
@@ -105,5 +107,21 @@
   --orbit-rotate: 15deg;
   width: var(--orbit-outer-size);
   height: var(--orbit-outer-size);
+}
+
+.orbit--fourth {
+  --orbit-opacity: .25;
+  --orbit-thickness: 5px;
+  --orbit-rotate: 22deg;
+  width: var(--orbit-fourth-size);
+  height: var(--orbit-fourth-size);
+}
+
+.orbit--fifth {
+  --orbit-opacity: .3;
+  --orbit-thickness: 6px;
+  --orbit-rotate: 28deg;
+  width: var(--orbit-fifth-size);
+  height: var(--orbit-fifth-size);
 }
 /*# sourceMappingURL=kinetic-css.1918779b.css.map */

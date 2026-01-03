@@ -722,6 +722,107 @@ const stage = title?.closest(".stage");
 if (title && stage) {
     const clampPercentage = (value)=>Math.max(0, Math.min(100, value));
     const formatPercent = (value)=>`${value.toFixed(3)}%`;
+    const trailConfigs = [
+        {
+            selector: ".orbit--inner",
+            speed: 0.27
+        },
+        {
+            selector: ".orbit--middle",
+            speed: 0.2
+        },
+        {
+            selector: ".orbit--outer",
+            speed: 0.13
+        },
+        {
+            selector: ".orbit--fourth",
+            speed: 0.09
+        },
+        {
+            selector: ".orbit--fifth",
+            speed: 0.06
+        }
+    ];
+    const orbitTrail = trailConfigs.map((config)=>{
+        const element = stage.querySelector(config.selector);
+        if (!element) return null;
+        const state = {
+            element,
+            speed: config.speed,
+            currentX: 50,
+            currentY: 50,
+            targetX: 50,
+            targetY: 50
+        };
+        element.style.setProperty("--orbit-x", formatPercent(state.currentX));
+        element.style.setProperty("--orbit-y", formatPercent(state.currentY));
+        return state;
+    }).filter(Boolean);
+    const animateOrbitTrail = ()=>{
+        orbitTrail.forEach((orbit)=>{
+            orbit.currentX += (orbit.targetX - orbit.currentX) * orbit.speed;
+            orbit.currentY += (orbit.targetY - orbit.currentY) * orbit.speed;
+            orbit.element.style.setProperty("--orbit-x", formatPercent(orbit.currentX));
+            orbit.element.style.setProperty("--orbit-y", formatPercent(orbit.currentY));
+        });
+        requestAnimationFrame(animateOrbitTrail);
+    };
+    if (orbitTrail.length) requestAnimationFrame(animateOrbitTrail);
+    let autoFrameId = null;
+    let autoListenersAttached = false;
+    let autoPlaying = true;
+    let autoPhase = 0;
+    let lastAutoTimestamp = null;
+    const handleUserPointer = ()=>{
+        disableAutoMotion();
+    };
+    const disableAutoMotion = ()=>{
+        if (!autoPlaying) return;
+        autoPlaying = false;
+        if (autoFrameId !== null) {
+            cancelAnimationFrame(autoFrameId);
+            autoFrameId = null;
+        }
+        if (autoListenersAttached) {
+            stage.removeEventListener("pointermove", handleUserPointer);
+            stage.removeEventListener("pointerdown", handleUserPointer);
+            autoListenersAttached = false;
+        }
+        lastAutoTimestamp = null;
+    };
+    const enableAutoListeners = ()=>{
+        if (autoListenersAttached) return;
+        stage.addEventListener("pointermove", handleUserPointer, {
+            passive: true
+        });
+        stage.addEventListener("pointerdown", handleUserPointer);
+        autoListenersAttached = true;
+    };
+    const animateAutoMotion = (timestamp)=>{
+        if (!autoPlaying) return;
+        const cycle = 5000;
+        if (lastAutoTimestamp !== null) autoPhase += (timestamp - lastAutoTimestamp) / cycle;
+        lastAutoTimestamp = timestamp;
+        autoPhase %= 1;
+        const angle = autoPhase * Math.PI * 2;
+        const sinAngle = Math.sin(angle);
+        const cosAngle = Math.cos(angle);
+        const denom = sinAngle * sinAngle + 1;
+        const rawX = cosAngle / denom;
+        const rawY = sinAngle * cosAngle / denom;
+        const px = 50 + rawX * 26;
+        const py = 50 + rawY * 18;
+        setPosition(px, py);
+        autoFrameId = requestAnimationFrame(animateAutoMotion);
+    };
+    const startAutoMotion = ()=>{
+        autoPlaying = true;
+        enableAutoListeners();
+        if (autoFrameId !== null) cancelAnimationFrame(autoFrameId);
+        lastAutoTimestamp = null;
+        autoFrameId = requestAnimationFrame(animateAutoMotion);
+    };
     const setPosition = (px, py)=>{
         const clampedX = clampPercentage(px);
         const clampedY = clampPercentage(py);
@@ -731,6 +832,10 @@ if (title && stage) {
         stage.style.setProperty("--title-y", yValue);
         title.style.setProperty("--title-x", xValue);
         title.style.setProperty("--title-y", yValue);
+        orbitTrail.forEach((orbit)=>{
+            orbit.targetX = clampedX;
+            orbit.targetY = clampedY;
+        });
     };
     const calibrateVisualOffset = (attempt = 0)=>{
         if (attempt > 5) return;
@@ -761,6 +866,7 @@ if (title && stage) {
     let offsetY = 0;
     const onPointerDown = (ev)=>{
         ev.preventDefault();
+        handleUserPointer();
         dragging = true;
         title.setPointerCapture?.(ev.pointerId);
         const rect = title.getBoundingClientRect();
@@ -817,6 +923,8 @@ if (title && stage) {
     if (document.fonts?.ready) document.fonts.ready.then(()=>{
         scheduleCalibration();
     });
+    setPosition(50, 50);
+    startAutoMotion();
     scheduleCalibration();
 }
 

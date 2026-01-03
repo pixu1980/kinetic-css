@@ -8,21 +8,23 @@
 }
 
 /* Center the slide */
-[intro].slide {
+section[intro] {
 	display: grid;
 	place-items: center;
 }
 
 /* Stage (16:9, centered) */
 .stage {
-	--orbit-inner-size: 275px;
-	--orbit-middle-size: 440px;
-	--orbit-outer-size: 605px;
+	--orbit-inner-size: 260px;
+	--orbit-middle-size: 335px;
+	--orbit-outer-size: 410px;
+	--orbit-fourth-size: 485px;
+	--orbit-fifth-size: 560px;
 	--title-x: 50%;
 	--title-y: 50%;
 	--title-offset: 1rem;
 	width: 85%;
-	height: var(--orbit-outer-size);
+	height: var(--orbit-fifth-size);
 	position: relative;
 	overflow: visible;
 	margin: auto; /* Center the stage */
@@ -37,7 +39,7 @@
 }
 
 .stage {
-	animation: hue-cycle 18s linear infinite;
+	animation: hue-cycle 6s linear infinite;
 }
 
 /* System container */
@@ -96,9 +98,9 @@
 		calc(0.3 + var(--orbit-opacity, 0))
 	);
 	pointer-events: none;
-	/* Follow title position */
-	left: var(--title-x, 50%);
-	top: var(--title-y, 50%);
+	/* Orbits read these values; JS controls the trailing motion */
+	left: var(--orbit-x, var(--title-x, 50%));
+	top: var(--orbit-y, var(--title-y, 50%));
 	/* Transform with configurable rotation */
 	transform-origin: center;
 	transform: translate(-50%, -50%) rotateZ(var(--orbit-rotate, 0deg));
@@ -126,4 +128,20 @@
 	--orbit-rotate: 15deg;
 	width: var(--orbit-outer-size);
 	height: var(--orbit-outer-size);
+}
+
+.orbit--fourth {
+	--orbit-opacity: 0.25;
+	--orbit-thickness: 5px;
+	--orbit-rotate: 22deg;
+	width: var(--orbit-fourth-size);
+	height: var(--orbit-fourth-size);
+}
+
+.orbit--fifth {
+	--orbit-opacity: 0.3;
+	--orbit-thickness: 6px;
+	--orbit-rotate: 28deg;
+	width: var(--orbit-fifth-size);
+	height: var(--orbit-fifth-size);
 }
