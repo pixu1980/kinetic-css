@@ -1,0 +1,49 @@
+<!-- Slide 5: Sponsors Grid Initial Entrance -->
+<!-- Speaker notes: All sponsor logos enter with staggered @starting-style. Each logo has a CSS variable --i for delay. -->
+<section data-topic="sponsors" data-menu-title="Sponsors" class="motion-slide">
+  <h3 class="motion-title">Sponsors</h3>
+  <small balance>A staggered entrance with <mark>@starting-style</mark> and a simple per-item delay.</small>
+</section>
+
+<section data-topic="sponsors" data-menu-title="Sponsors" class="motion-slide">
+  <h4>Demo</h4>
+  <div class="sponsors-hero">
+    <img src="./assets/sponsors/42de.svg" alt="42DE" class="sponsor-enter" style="--i: 0" />
+    <img src="./assets/sponsors/andrea-carratta.webp" alt="Andrea Carratta" class="sponsor-enter" style="--i: 1" />
+    <img src="./assets/sponsors/arrow-worm.webp" alt="Arrow Worm" class="sponsor-enter" style="--i: 2" />
+    <img src="./assets/sponsors/ciabot.webp" alt="Ciabot" class="sponsor-enter" style="--i: 3" />
+    <img src="./assets/sponsors/fattutto.webp" alt="Fattutto" class="sponsor-enter" style="--i: 4" />
+    <img src="./assets/sponsors/geeks-creations.svg" alt="Geeks Creations" class="sponsor-enter" style="--i: 5" />
+    <img src="./assets/sponsors/hotel-cube.webp" alt="Hotel Cube" class="sponsor-enter" style="--i: 6" />
+    <img src="./assets/sponsors/kaysoft.webp" alt="Kaysoft" class="sponsor-enter" style="--i: 7" />
+    <img src="./assets/sponsors/namirial.webp" alt="Namirial" class="sponsor-enter" style="--i: 8" />
+    <img src="./assets/sponsors/nopos.svg" alt="Nopos" class="sponsor-enter" style="--i: 9" />
+    <img src="./assets/sponsors/orbyta-tech.webp" alt="Orbyta Tech" class="sponsor-enter" style="--i: 10" />
+    <img src="./assets/sponsors/quantik-mind.webp" alt="Quantik Mind" class="sponsor-enter" style="--i: 11" />
+    <img src="./assets/sponsors/storyblok.webp" alt="Storyblok" class="sponsor-enter" style="--i: 12" />
+    <img src="./assets/sponsors/taktik-flowr.webp" alt="Taktik Flowr" class="sponsor-enter" style="--i: 13" />
+    <img src="./assets/sponsors/torino-dotnet.webp" alt="Torino .NET" class="sponsor-enter" style="--i: 14" />
+    <img src="./assets/sponsors/welyk.svg" alt="Welyk" class="sponsor-enter" style="--i: 15" />
+  </div>
+  <pre>
+    <code data-trim data-line-numbers class="hljs css">
+    .sponsor-enter {
+      transition-delay: calc(var(--i, 0) * 80ms);
+
+      @starting-style {
+        opacity: 0;
+        transform: translateY(30px) scale(0.8);
+      }
+    }
+    </code>
+  </pre>
+  <aside class="notes">
+    <ul>
+      <li>Roll call: logos arrive in waves, like an impulse traveling left to right</li>
+      <li>Each logo has a micro tilt and settle, so the grid feels alive but not chaotic</li>
+      <li>The stagger uses --i for delay calculation: 80ms between each logo</li>
+      <li>@starting-style handles the initial hidden state</li>
+      <li>API focus: grid layout, :nth-child for stagger, @starting-style</li>
+    </ul>
+  </aside>
+</section>

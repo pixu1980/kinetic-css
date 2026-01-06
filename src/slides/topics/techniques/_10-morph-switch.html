@@ -1,8 +1,8 @@
-<!-- Slide 10: View Transitions Same Document -->
-<!-- Speaker notes: View Transitions API for same-document state changes. Click a logo to toggle detail view with styled ::view-transition-* pseudos. -->
-<section data-topic="view-transitions" data-menu-title="View transitions" class="motion-slide">
-  <h3 class="motion-title">View Transitions API</h3>
-  <small balance>Same document morphing. Click a logo to transition from a grid to a detail view.</small>
+<!-- Slide 11: Morph Switch -->
+<!-- Speaker notes: The logo changes state like a film cut: grid transforms into detail without visible transition. It is a scene change, not a fade. -->
+<section data-topic="morph-switch" data-menu-title="Morph Switch" class="motion-slide">
+  <h3 class="motion-title">Morph Switch</h3>
+  <small balance>The grid transforms into a detail view like a film cut. No fade, just a scene change.</small>
 </section>
 
 <section data-topic="view-transitions" data-menu-title="View transitions" class="motion-slide">
@@ -35,4 +35,12 @@
     });
     </code>
   </pre>
+  <aside class="notes">
+    <ul>
+      <li>This is not a fade, it is a morphing scene change</li>
+      <li>startViewTransition captures the old state, then applies the new state</li>
+      <li>The browser interpolates between them automatically</li>
+      <li>API focus: View Transitions API, ::view-transition-old/new pseudos</li>
+    </ul>
+  </aside>
 </section>

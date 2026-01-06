@@ -1,0 +1,55 @@
+<!-- Slide 18: Deep Card 3D -->
+<!-- Speaker notes: The logo is inside a card with volume. When you tilt, you feel depth, like looking into a glass box. -->
+<section data-topic="deep-card" data-menu-title="Deep Card 3D" class="motion-slide">
+  <h3 class="motion-title">Deep Card 3D</h3>
+  <small balance>The logo lives inside a card with volume. Tilt to feel the depth, like a glass box.</small>
+</section>
+
+<section data-topic="deep-card" data-menu-title="Deep Card 3D" class="motion-slide">
+  <h4>Demo</h4>
+  <div class="grid-logos motion-grid-2" style="grid-template-columns: repeat(2, 280px)">
+    <div class="deep-card-container">
+      <button type="button" class="deep-card" style="--card-hue: 220">
+        <div class="deep-card-face">
+          <img src="./assets/sponsors/storyblok.webp" alt="Storyblok" class="logo" style="width: 160px" />
+        </div>
+        <div class="deep-card-back">
+          <p>Storyblok</p>
+        </div>
+      </button>
+    </div>
+    <div class="deep-card-container">
+      <button type="button" class="deep-card" style="--card-hue: 280">
+        <div class="deep-card-face">
+          <img src="./assets/sponsors/namirial.webp" alt="Namirial" class="logo" style="width: 160px" />
+        </div>
+        <div class="deep-card-back">
+          <p>Namirial</p>
+        </div>
+      </button>
+    </div>
+  </div>
+  <pre>
+    <code data-trim data-line-numbers class="hljs css">
+    .deep-card-container { perspective: 1000px; }
+
+    .deep-card {
+      transform-style: preserve-3d;
+      transition: transform 0.5s var(--ease-out);
+    }
+
+    .deep-card:hover,
+    .deep-card:focus-visible {
+      transform: rotateY(12deg) rotateX(-8deg) translateZ(40px);
+    }
+    </code>
+  </pre>
+  <aside class="notes">
+    <ul>
+      <li>perspective on the container creates the 3D viewing angle</li>
+      <li>preserve-3d keeps children in 3D space</li>
+      <li>rotateX/Y plus translateZ creates the tilt effect</li>
+      <li>API focus: perspective, transform-style: preserve-3d, rotateX/Y</li>
+    </ul>
+  </aside>
+</section>

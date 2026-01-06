@@ -1,8 +1,8 @@
-<!-- Slide 8: View Timeline Reveal -->
-<!-- Speaker notes: Scroll driven animations with view(). Each logo reveals as it enters the viewport. animation-range controls timing. -->
-<section data-topic="view-timeline" data-menu-title="View timeline" class="motion-slide">
-  <h3 class="motion-title"><mark>animation-timeline</mark>: view()</h3>
-  <small balance>Scroll driven reveal. Each element animates when it enters the viewport.</small>
+<!-- Slide 9: Scroll Reveal -->
+<!-- Speaker notes: When the slide enters view, the logo emerges from behind frosted glass: transparent and shifted, then solidifies as you scroll. -->
+<section data-topic="scroll-reveal" data-menu-title="Scroll Reveal" class="motion-slide">
+  <h3 class="motion-title">Scroll Reveal</h3>
+  <small balance>When the element enters the viewport, it emerges like from behind frosted glass.</small>
 </section>
 
 <section data-topic="view-timeline" data-menu-title="View timeline" class="motion-slide">
@@ -28,4 +28,12 @@
     }
     </code>
   </pre>
+  <aside class="notes">
+    <ul>
+      <li>The logo starts transparent and slightly shifted, then takes form as you scroll</li>
+      <li>view() creates a timeline based on the element visibility in the viewport</li>
+      <li>animation-range controls when the animation starts and ends</li>
+      <li>API focus: animation-timeline: view(), animation-range</li>
+    </ul>
+  </aside>
 </section>

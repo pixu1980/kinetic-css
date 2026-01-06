@@ -1,0 +1,35 @@
+<!-- Slide 8: Orbit Path -->
+<!-- Speaker notes: The logo orbits on a smooth path, rotating around a point of interest. The rotation aligns to the curve, like a satellite. -->
+<section data-topic="orbit-path" data-menu-title="Orbit Path" class="motion-slide">
+  <h3 class="motion-title">Orbit Path</h3>
+  <small balance>The logo orbits around a point, rotating to align with the curve like a satellite.</small>
+</section>
+
+<section data-topic="motion-path" data-menu-title="Motion path" class="motion-slide">
+  <h4>Demo</h4>
+  <div class="orbit-container" style="margin-top: 2rem">
+    <h3 class="orbit-title">Kinetic CSS</h3>
+    <img src="./assets/sponsors/42de.svg" alt="42DE orbiting" class="logo orbit-logo" />
+    <img src="./assets/sponsors/welyk.svg" alt="Welyk orbiting" class="logo orbit-logo" style="animation-delay: -4s" />
+  </div>
+  <pre>
+    <code data-trim data-line-numbers class="hljs css">
+    .orbit-logo {
+      offset-path: ellipse(220px 100px at 50% 50%);
+      animation: orbit-path 8s linear infinite;
+    }
+
+    @keyframes orbit-path {
+      to { offset-distance: 100%; }
+    }
+    </code>
+  </pre>
+  <aside class="notes">
+    <ul>
+      <li>The logo follows an elliptical orbit around the title</li>
+      <li>offset-rotate auto aligns the element to the path direction</li>
+      <li>This is pure CSS, no JavaScript animation loop needed</li>
+      <li>API focus: offset-path, offset-distance, offset-rotate</li>
+    </ul>
+  </aside>
+</section>

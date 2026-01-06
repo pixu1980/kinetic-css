@@ -1,8 +1,8 @@
-<!-- Slide 7: @property Registered Variables -->
-<!-- Speaker notes: CSS @property lets us define typed custom properties that can be animated. Here --t drives scale and rotate. -->
-<section data-topic="property" data-menu-title="@property" class="motion-slide">
-  <h3 class="motion-title"><mark>@property</mark></h3>
-  <small balance>Register a typed custom property so it can interpolate through animations.</small>
+<!-- Slide 7: Typed Pulse -->
+<!-- Speaker notes: The logo pulses like an electronic heartbeat: controlled, fluid, repeatable. -->
+<section data-topic="typed-pulse" data-menu-title="Typed Pulse" class="motion-slide">
+  <h3 class="motion-title">Typed Pulse</h3>
+  <small balance>The logo pulses like an electronic heartbeat: controlled breathing via <mark>@property</mark>.</small>
 </section>
 
 <section data-topic="property" data-menu-title="@property" class="motion-slide">
@@ -27,4 +27,12 @@
     }
     </code>
   </pre>
+  <aside class="notes">
+    <ul>
+      <li>The pulse is not a simple scale, it is a controlled breath: smooth, fluid, always the same</li>
+      <li>@property with syntax number makes --t interpolate between 0 and 1</li>
+      <li>The keyframes animate --t, and scale is computed from it</li>
+      <li>API focus: @property typed custom property, keyframes on custom property</li>
+    </ul>
+  </aside>
 </section>

@@ -1,5 +1,5 @@
-@import 'npm:@pixu-talks/fonts';
-@import 'npm:@pixu-talks/theme';
+@import "npm:@pixu-talks/fonts";
+@import "npm:@pixu-talks/theme";
 
-@import '_doodle.css';
-@import '_motion.css';
+@import "_doodle.css";
+@import "_motion.css";

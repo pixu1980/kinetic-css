@@ -1,0 +1,47 @@
+<!-- Slide 6: Magnetic Snap -->
+<!-- Speaker notes: The logo moves like attracted to a magnet: accelerates toward center, overshoots, then settles with a soft bounce. -->
+<section data-topic="magnetic-snap" data-menu-title="Magnetic Snap" class="motion-slide">
+  <h3 class="motion-title">Magnetic Snap</h3>
+  <small balance>The logo moves like attracted to a magnet: accelerates, overshoots, then bounces back softly.</small>
+</section>
+
+<section data-topic="magnetic-snap" data-menu-title="Magnetic Snap" class="motion-slide">
+  <h4>Demo</h4>
+  <div class="grid-logos motion-grid-4">
+    <button type="button" class="motion-btn-reset">
+      <img src="./assets/sponsors/42de.svg" alt="42DE" class="logo logo-magnetic hero" />
+    </button>
+    <button type="button" class="motion-btn-reset">
+      <img src="./assets/sponsors/namirial.webp" alt="Namirial" class="logo logo-magnetic" />
+    </button>
+    <button type="button" class="motion-btn-reset">
+      <img src="./assets/sponsors/orbyta-tech.webp" alt="Orbyta Tech" class="logo logo-magnetic" />
+    </button>
+    <button type="button" class="motion-btn-reset">
+      <img src="./assets/sponsors/kaysoft.webp" alt="Kaysoft" class="logo logo-magnetic" />
+    </button>
+  </div>
+  <pre>
+    <code data-trim data-line-numbers class="hljs css">
+    .logo-magnetic {
+      transition:
+        translate 0.4s var(--ease-overshoot),
+        scale 0.4s var(--ease-overshoot);
+    }
+
+    .logo-magnetic:hover,
+    .logo-magnetic:focus-visible {
+      translate: 0 -12px;
+      scale: 1.12;
+    }
+    </code>
+  </pre>
+  <aside class="notes">
+    <ul>
+      <li>The logo accelerates toward the target point, overshoots slightly, then settles back</li>
+      <li>We use a cubic-bezier with values greater than 1 to create the overshoot</li>
+      <li>The bounce is soft, not mechanical, like a magnetic pull</li>
+      <li>API focus: transitions, cubic-bezier, individual translate and scale</li>
+    </ul>
+  </aside>
+</section>

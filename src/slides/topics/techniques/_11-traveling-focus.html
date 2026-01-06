@@ -1,8 +1,8 @@
-<!-- Slide 11: Anchor Positioning + Popover -->
-<!-- Speaker notes: CSS anchor positioning places elements relative to an anchor. Combined with popover for accessible tooltips. -->
-<section data-topic="anchor-positioning" data-menu-title="Anchor positioning" class="motion-slide">
-  <h3 class="motion-title">Anchor Positioning</h3>
-  <small balance>Place a popover relative to an anchor element. Great for menus and tooltips with less layout math.</small>
+<!-- Slide 12: Traveling Focus -->
+<!-- Speaker notes: The focus ring does not just appear, it travels. When you move between elements, the ring slides from one logo to another like a magnetic frame. -->
+<section data-topic="traveling-focus" data-menu-title="Traveling Focus" class="motion-slide">
+  <h3 class="motion-title">Traveling Focus</h3>
+  <small balance>The focus ring travels between elements, sliding like a magnetic frame.</small>
 </section>
 
 <section data-topic="anchor-positioning" data-menu-title="Anchor positioning" class="motion-slide">
@@ -35,4 +35,12 @@
     }
     </code>
   </pre>
+  <aside class="notes">
+    <ul>
+      <li>The focus ring travels between elements instead of jumping</li>
+      <li>anchor-name defines the anchor, position-anchor references it</li>
+      <li>The popover positions itself using anchor() functions</li>
+      <li>API focus: anchor-name, position-anchor, inset: anchor()</li>
+    </ul>
+  </aside>
 </section>

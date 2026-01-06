@@ -1,0 +1,58 @@
+<!-- Slide 13: Popover Tooltip -->
+<!-- Speaker notes: When you activate the logo, a card appears like a suspended tag, anchored to the logo, with a light flip entrance. -->
+<section data-topic="popover-tooltip" data-menu-title="Popover Tooltip" class="motion-slide">
+  <h3 class="motion-title">Popover Tooltip</h3>
+  <small balance>A tooltip appears like a suspended tag, anchored to its trigger with a light flip entrance.</small>
+</section>
+
+<section data-topic="popover-tooltip" data-menu-title="Popover Tooltip" class="motion-slide">
+  <h4>Demo</h4>
+  <div class="grid-logos motion-grid-3">
+    <button type="button" class="motion-btn-reset" popovertarget="pop-storyblok" style="anchor-name: --pop-storyblok">
+      <img src="./assets/sponsors/storyblok.webp" alt="Storyblok" class="logo" />
+    </button>
+    <div id="pop-storyblok" popover class="tooltip-popover" style="position-anchor: --pop-storyblok">
+      <strong>Storyblok</strong>
+      <p>Headless CMS for developers</p>
+    </div>
+
+    <button type="button" class="motion-btn-reset" popovertarget="pop-namirial" style="anchor-name: --pop-namirial">
+      <img src="./assets/sponsors/namirial.webp" alt="Namirial" class="logo" />
+    </button>
+    <div id="pop-namirial" popover class="tooltip-popover" style="position-anchor: --pop-namirial">
+      <strong>Namirial</strong>
+      <p>Digital trust services</p>
+    </div>
+
+    <button type="button" class="motion-btn-reset" popovertarget="pop-kaysoft" style="anchor-name: --pop-kaysoft">
+      <img src="./assets/sponsors/kaysoft.webp" alt="Kaysoft" class="logo" />
+    </button>
+    <div id="pop-kaysoft" popover class="tooltip-popover" style="position-anchor: --pop-kaysoft">
+      <strong>Kaysoft</strong>
+      <p>Software solutions</p>
+    </div>
+  </div>
+  <pre>
+    <code data-trim data-line-numbers class="hljs css">
+    .tooltip-popover {
+      position-anchor: --trigger;
+      top: anchor(bottom);
+      left: anchor(center);
+      transition: opacity 0.3s, transform 0.3s;
+
+      @starting-style {
+        opacity: 0;
+        transform: translateY(-10px) rotateX(15deg);
+      }
+    }
+    </code>
+  </pre>
+  <aside class="notes">
+    <ul>
+      <li>The tooltip flips in gently, like a tag being attached</li>
+      <li>Popover API provides the show/hide behavior natively</li>
+      <li>@starting-style handles the entrance animation</li>
+      <li>API focus: Popover API, anchor positioning, @starting-style</li>
+    </ul>
+  </aside>
+</section>

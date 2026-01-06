@@ -1,6 +1,43 @@
 /* Motion Primitives - Kinetic CSS */
 
 /* ========================================
+   Design Tokens - Duration, Easing, Spacing
+   ======================================== */
+
+:root {
+  /* Durations */
+  --duration-fast: 150ms;
+  --duration-normal: 300ms;
+  --duration-slow: 600ms;
+  --duration-cinematic: 800ms;
+
+  /* Easing */
+  --ease-out: cubic-bezier(0.33, 1, 0.68, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-overshoot: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --ease-snap: cubic-bezier(0.5, 1.5, 0.75, 1);
+
+  /* Stagger base delay */
+  --stagger-base: 80ms;
+}
+
+/* ========================================
+   Reduced Motion - Global Override
+   ======================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ========================================
    @property Definitions
    ======================================== */
 
@@ -68,53 +105,119 @@
    Slide 3: @starting-style Hero Enter
    ======================================== */
 
-.hero-logo {
+.hero-logo-container {
+  display: none;
+  place-items: center;
+  margin-top: 2rem;
+}
+
+.present {
+  .hero-logo-container {
+    display: grid;
+  }
+
+  .hero-logo {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    transition:
+      opacity 0.8s ease-out 0.5s,
+      transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s;
+
+    @starting-style {
+      opacity: 0;
+      transform: scale(0.5) translateY(40px);
+    }
+  }
+}
+
+/* ========================================
+   Slide 4: Topics Stagger Animation
+   ======================================== */
+
+.topic-stagger li {
   opacity: 1;
-  transform: scale(1) translateY(0);
+  transform: translateX(0);
   transition:
-    opacity 0.8s ease-out,
-    transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+    opacity var(--duration-normal) var(--ease-out),
+    transform var(--duration-normal) var(--ease-overshoot);
+  transition-delay: calc(var(--i, 0) * var(--stagger-base));
 
   @starting-style {
     opacity: 0;
-    transform: scale(0.5) translateY(40px);
+    transform: translateX(-20px);
   }
 }
 
 /* ========================================
    Slide 5: Sponsors Initial Entrance
    ======================================== */
+/* Hero container variant: sized 80% with 16/9 aspect and 4x4 grid */
+.sponsors-hero {
+  display: none;
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: 1fr;
+  gap: 1rem;
+  place-items: center;
+  margin: 0 auto;
+  width: 80%;
+  aspect-ratio: 16 / 9;
+  padding: 1rem;
+}
 
-.sponsor-enter {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-  transition:
-    opacity 0.6s ease-out,
-    transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-  transition-delay: calc(var(--i, 0) * 80ms);
+.present {
+  .sponsors-hero {
+    --stagger-base: 0.5s;
 
-  @starting-style {
-    opacity: 0;
-    transform: translateY(30px) scale(0.8);
+    display: grid;
+  }
+
+  .sponsor-enter {
+    width: 100%;
+    height: 100%;
+    max-width: 10rem;
+    object-fit: contain;
+    will-change: transform, opacity;
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    transition:
+      opacity 0.3s ease-out,
+      transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    /* sibling-index() preferred; fallback to --i set on element or by nth-child rules below */
+    /* transition-delay: calc((sibling-index() - 1) * var(--stagger-base)); */
+    transition-delay: calc(var(--i, 0) * var(--stagger-base));
+
+    @starting-style {
+      opacity: 0;
+      transform: scale(0.5) translateY(40px);
+    }
   }
 }
 
 /* ========================================
-   Slide 6: Individual Transforms Hover
+   Slide 6: Magnetic Snap
    ======================================== */
 
-.logo-transform {
+.logo-magnetic {
   transition:
-    rotate 0.3s ease-out,
-    scale 0.3s ease-out,
-    translate 0.3s ease-out;
+    translate var(--duration-slow) var(--ease-overshoot),
+    scale var(--duration-slow) var(--ease-overshoot);
 }
 
-.logo-transform:hover,
-.logo-transform:focus-visible {
-  rotate: 5deg;
-  scale: 1.15;
-  translate: 0 -8px;
+.logo-magnetic:hover,
+.logo-magnetic:focus-visible {
+  translate: 0 -12px;
+  scale: 1.12;
+}
+
+.logo-magnetic.hero {
+  scale: 1.05;
+}
+
+.logo-magnetic.hero:hover,
+.logo-magnetic.hero:focus-visible {
+  translate: 0 -16px;
+  scale: 1.2;
 }
 
 /* ========================================
@@ -556,12 +659,6 @@ button:focus-visible,
   text-align: center;
 }
 
-.hero-logo-container {
-  margin-top: 2rem;
-  display: grid;
-  place-items: center;
-}
-
 .motion-agenda {
   font-size: 1.2rem;
   line-height: 2;
@@ -654,4 +751,394 @@ button:focus-visible,
   background: oklch(0.2 0.02 250);
   border-radius: 4px;
   color: oklch(0.8 0.1 200);
+}
+
+/* ========================================
+   Slide 16: Kinetic Steps
+   ======================================== */
+
+@keyframes slide-in-steps {
+  from {
+    translate: -100% 0;
+    opacity: 0;
+  }
+  to {
+    translate: 0 0;
+    opacity: 1;
+  }
+}
+
+.logo-steps {
+  animation: slide-in-steps 1.5s steps(var(--steps, 8)) infinite;
+}
+
+.logo-linear {
+  animation: slide-in-steps 1.5s linear(0, 0.8, 0.9, 1) infinite;
+}
+
+/* ========================================
+   Slide 17: Glass Blur Entrance
+   ======================================== */
+
+.glass-panel {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: oklch(0.15 0.02 250);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.glass-overlay {
+  position: absolute;
+  inset: 0;
+  backdrop-filter: blur(20px);
+  animation: glass-clear 2s var(--ease-out) forwards;
+  animation-delay: var(--glass-delay, 0s);
+}
+
+@keyframes glass-clear {
+  from {
+    backdrop-filter: blur(20px);
+    opacity: 1;
+  }
+  to {
+    backdrop-filter: blur(0);
+    opacity: 0;
+  }
+}
+
+.logo-glass {
+  filter: blur(10px);
+  animation: focus-in 2s var(--ease-out) forwards;
+  animation-delay: var(--glass-delay, 0s);
+}
+
+@keyframes focus-in {
+  from {
+    filter: blur(10px);
+  }
+  to {
+    filter: blur(0);
+  }
+}
+
+/* ========================================
+   Slide 19: Stagger Math
+   ======================================== */
+
+@keyframes stagger-pop {
+  from {
+    opacity: 0;
+    scale: 0.5;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+.logo-stagger {
+  animation: stagger-pop 0.4s var(--ease-overshoot) both;
+  animation-delay: calc(var(--i, 0) * 100ms);
+}
+
+/* Fallback for nth-child */
+.logo-stagger:nth-child(1) {
+  --i: 0;
+}
+.logo-stagger:nth-child(2) {
+  --i: 1;
+}
+.logo-stagger:nth-child(3) {
+  --i: 2;
+}
+.logo-stagger:nth-child(4) {
+  --i: 3;
+}
+.logo-stagger:nth-child(5) {
+  --i: 4;
+}
+.logo-stagger:nth-child(6) {
+  --i: 5;
+}
+.logo-stagger:nth-child(7) {
+  --i: 6;
+}
+.logo-stagger:nth-child(8) {
+  --i: 7;
+}
+
+/* ========================================
+   Slide 20: Conditional Motion
+   ======================================== */
+
+@keyframes breathe {
+  0%,
+  100% {
+    scale: 1;
+    filter: brightness(1);
+  }
+  50% {
+    scale: 1.1;
+    filter: brightness(1.2);
+  }
+}
+
+.logo-conditional {
+  animation: breathe 2s ease-in-out infinite;
+}
+
+.logo-conditional-static {
+  animation: none;
+  outline: 2px dashed oklch(0.6 0.1 30);
+  outline-offset: 8px;
+}
+
+/* ========================================
+   Slide 21: Timeline Sync Finale
+   ======================================== */
+
+.timeline-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 2rem;
+}
+
+.timeline-track {
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  align-items: center;
+}
+
+.timeline-bar {
+  width: 100%;
+  height: 4px;
+  background: oklch(0.3 0.02 250);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.timeline-progress {
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, oklch(0.7 0.2 200), oklch(0.8 0.2 280));
+  animation: progress-fill 4s ease-in-out infinite;
+}
+
+@keyframes progress-fill {
+  0% {
+    width: 0;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
+@keyframes sync-dance {
+  0% {
+    opacity: 0;
+    scale: 0.5;
+  }
+  50% {
+    opacity: 1;
+    scale: 1.1;
+  }
+  100% {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+.logo-timeline-sync {
+  animation: sync-dance 1s var(--ease-overshoot) both;
+  animation-delay: calc(var(--sync-order, 0) * 0.8s);
+}
+
+/* ========================================
+   Slides 22-24: Content Slides Styling
+   ======================================== */
+
+/* Slide 22: Architecture Diagram */
+.architecture-diagram {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 2rem;
+}
+
+.arch-layer {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: oklch(0.2 0.03 calc(200 + var(--layer, 0) * 20));
+  border-left: 4px solid oklch(0.6 0.15 calc(200 + var(--layer, 0) * 30));
+  border-radius: 0 8px 8px 0;
+  opacity: 1;
+  translate: 0 0;
+  transition:
+    opacity 0.4s ease-out,
+    translate 0.4s var(--ease-overshoot);
+  transition-delay: calc(var(--layer, 0) * 100ms);
+
+  @starting-style {
+    opacity: 0;
+    translate: -20px 0;
+  }
+}
+
+.arch-layer strong {
+  color: oklch(0.9 0.1 calc(200 + var(--layer, 0) * 30));
+}
+
+.arch-layer span {
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+/* Slide 23: Performance Cards */
+.perf-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.perf-card {
+  padding: 1.5rem;
+  border-radius: 12px;
+  background: oklch(0.15 0.02 250);
+  border: 2px solid;
+  position: relative;
+}
+
+.perf-card ul {
+  margin: 1rem 0;
+  padding-left: 1rem;
+  font-size: 0.9rem;
+}
+
+.perf-card li {
+  margin-bottom: 0.5rem;
+}
+
+.perf-badge {
+  position: absolute;
+  top: -0.75rem;
+  right: 1rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.perf-good {
+  border-color: oklch(0.6 0.2 140);
+}
+
+.perf-good .perf-badge {
+  background: oklch(0.6 0.2 140);
+  color: oklch(0.1 0 0);
+}
+
+.perf-warn {
+  border-color: oklch(0.7 0.2 80);
+}
+
+.perf-warn .perf-badge {
+  background: oklch(0.7 0.2 80);
+  color: oklch(0.1 0 0);
+}
+
+.perf-bad {
+  border-color: oklch(0.6 0.2 30);
+}
+
+.perf-bad .perf-badge {
+  background: oklch(0.6 0.2 30);
+  color: oklch(0.1 0 0);
+}
+
+/* Slide 24: Patterns Cards */
+.patterns-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.pattern-card {
+  padding: 1rem;
+  border-radius: 8px;
+  background: oklch(0.15 0.02 250);
+  border: 1px solid oklch(0.3 0.05 250);
+}
+
+.pattern-card strong {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: oklch(0.8 0.1 200);
+}
+
+.pattern-card pre {
+  margin: 0;
+  font-size: 0.75rem;
+}
+
+/* ========================================
+   Slide 25: Curtain Call
+   ======================================== */
+
+.curtain-call-stage {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2rem;
+  padding: 2rem;
+  justify-items: center;
+  align-items: center;
+}
+
+@keyframes curtain-entrance {
+  0% {
+    opacity: 0;
+    scale: 0.3;
+    translate: calc((var(--i, 0) - 7.5) * 20px) calc((var(--i, 0) - 7.5) * 10px);
+  }
+  60% {
+    opacity: 1;
+    scale: 1.1;
+    translate: 0 0;
+  }
+  80% {
+    scale: 1;
+  }
+  100% {
+    opacity: 1;
+    scale: 1;
+    translate: 0 0;
+  }
+}
+
+@keyframes curtain-pulse {
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.3);
+  }
+}
+
+.logo-curtain {
+  width: 100px;
+  animation:
+    curtain-entrance 1.2s var(--ease-overshoot) both,
+    curtain-pulse 2s ease-in-out infinite;
+  animation-delay: calc(var(--i, 0) * 150ms), calc(1.5s + var(--i, 0) * 50ms);
 }

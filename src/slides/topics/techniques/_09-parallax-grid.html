@@ -1,8 +1,8 @@
-<!-- Slide 9: Named Timeline with timeline-scope -->
-<!-- Speaker notes: timeline-scope hoists a scroll-timeline to an ancestor. The hero logo animates based on the grid scroll. -->
-<section data-topic="named-timeline" data-menu-title="Named timelines" class="motion-slide">
-  <h3 class="motion-title">Named Timelines</h3>
-  <small balance>Use <mark>timeline-scope</mark> to share a scroll timeline with descendants.</small>
+<!-- Slide 10: Parallax Grid -->
+<!-- Speaker notes: Comparse move at different depths: small logos scroll slower, hero stays stable, creating believable parallax. -->
+<section data-topic="parallax-grid" data-menu-title="Parallax Grid" class="motion-slide">
+  <h3 class="motion-title">Parallax Grid</h3>
+  <small balance>Elements move at different depths: small logos scroll slower, creating parallax.</small>
 </section>
 
 <section data-topic="named-timeline" data-menu-title="Named timelines" class="motion-slide timeline-container">
@@ -30,4 +30,12 @@
     .hero-timeline-bound { animation-timeline: --grid-timeline; }
     </code>
   </pre>
+  <aside class="notes">
+    <ul>
+      <li>Small logos move faster as you scroll, hero logo stays more stable</li>
+      <li>This creates depth without 3D transforms</li>
+      <li>timeline-scope hoists the scroll-timeline to an ancestor</li>
+      <li>API focus: scroll-timeline, animation-timeline, timeline-scope</li>
+    </ul>
+  </aside>
 </section>
