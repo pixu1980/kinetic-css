@@ -1,0 +1,31 @@
+<!-- Slide 8: View Timeline Reveal -->
+<!-- Speaker notes: Scroll driven animations with view(). Each logo reveals as it enters the viewport. animation-range controls timing. -->
+<section data-topic="view-timeline" data-menu-title="View timeline" class="motion-slide">
+  <h3 class="motion-title"><mark>animation-timeline</mark>: view()</h3>
+  <small balance>Scroll driven reveal. Each element animates when it enters the viewport.</small>
+</section>
+
+<section data-topic="view-timeline" data-menu-title="View timeline" class="motion-slide">
+  <h4>Demo</h4>
+  <div class="motion-frame motion-scrollbox">
+    <div class="grid-logos">
+      <img src="./assets/sponsors/storyblok.webp" alt="Storyblok" class="logo logo-view-timeline" />
+      <img src="./assets/sponsors/namirial.webp" alt="Namirial" class="logo logo-view-timeline" />
+      <img src="./assets/sponsors/orbyta-tech.webp" alt="Orbyta Tech" class="logo logo-view-timeline" />
+      <img src="./assets/sponsors/kaysoft.webp" alt="Kaysoft" class="logo logo-view-timeline" />
+      <img src="./assets/sponsors/hotel-cube.webp" alt="Hotel Cube" class="logo logo-view-timeline" />
+      <img src="./assets/sponsors/ciabot.webp" alt="Ciabot" class="logo logo-view-timeline" />
+      <img src="./assets/sponsors/fattutto.webp" alt="Fattutto" class="logo logo-view-timeline" />
+      <img src="./assets/sponsors/quantik-mind.webp" alt="Quantik Mind" class="logo logo-view-timeline" />
+    </div>
+  </div>
+  <pre>
+    <code data-trim data-line-numbers class="hljs css">
+    .logo-view-timeline {
+      animation: reveal-in linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 100%;
+    }
+    </code>
+  </pre>
+</section>

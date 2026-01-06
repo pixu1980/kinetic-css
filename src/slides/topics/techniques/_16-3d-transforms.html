@@ -1,0 +1,46 @@
+<!-- Slide 16: 3D Deep Card -->
+<!-- Speaker notes: CSS 3D transforms with perspective and preserve-3d create depth. Hover to see the card rotate in 3D space. -->
+<section data-topic="3d-transforms" data-menu-title="3D transforms" class="motion-slide">
+  <h3 class="motion-title">3D Transforms</h3>
+  <small balance>Use <mark>perspective</mark> and <mark>preserve-3d</mark> to create depth.</small>
+</section>
+
+<section data-topic="3d-transforms" data-menu-title="3D transforms" class="motion-slide">
+  <h4>Demo</h4>
+  <div class="grid-logos motion-grid-2" style="grid-template-columns: repeat(2, 280px)">
+    <div class="deep-card-container">
+      <button type="button" class="deep-card" style="--card-hue: 250">
+        <div class="deep-card-face">
+          <img src="./assets/sponsors/storyblok.webp" alt="Storyblok" class="logo" style="width: 180px" />
+        </div>
+        <div class="deep-card-back">
+          <p>Backface</p>
+        </div>
+      </button>
+    </div>
+    <div class="deep-card-container">
+      <button type="button" class="deep-card" style="--card-hue: 280">
+        <div class="deep-card-face">
+          <img src="./assets/sponsors/namirial.webp" alt="Namirial" class="logo" style="width: 180px" />
+        </div>
+        <div class="deep-card-back">
+          <p>Backface</p>
+        </div>
+      </button>
+    </div>
+  </div>
+  <pre>
+    <code data-trim data-line-numbers class="hljs css">
+    .deep-card-container { perspective: 1000px; }
+
+    .deep-card {
+      transform-style: preserve-3d;
+    }
+
+    .deep-card:hover,
+    .deep-card:focus-within {
+      transform: rotateY(15deg) rotateX(-10deg) translateZ(50px);
+    }
+    </code>
+  </pre>
+</section>

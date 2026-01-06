@@ -1,0 +1,40 @@
+<!-- Slide 6: Individual Transforms Hover -->
+<!-- Speaker notes: Demonstrate individual transform properties: rotate, scale, translate. Hover or focus to see the effect. -->
+<section data-topic="individual-transforms" data-menu-title="Individual transforms" class="motion-slide">
+  <h3 class="motion-title">Individual Transforms</h3>
+  <small balance>Use <mark>rotate</mark>, <mark>scale</mark>, and <mark>translate</mark> as first class properties. Hover or focus a logo.</small>
+</section>
+
+<section data-topic="individual-transforms" data-menu-title="Individual transforms" class="motion-slide">
+  <h4>Demo</h4>
+  <div class="grid-logos motion-grid-4">
+    <button type="button" class="motion-btn-reset">
+      <img src="./assets/sponsors/storyblok.webp" alt="Storyblok" class="logo logo-transform" />
+    </button>
+    <button type="button" class="motion-btn-reset">
+      <img src="./assets/sponsors/namirial.webp" alt="Namirial" class="logo logo-transform" />
+    </button>
+    <button type="button" class="motion-btn-reset">
+      <img src="./assets/sponsors/orbyta-tech.webp" alt="Orbyta Tech" class="logo logo-transform" />
+    </button>
+    <button type="button" class="motion-btn-reset">
+      <img src="./assets/sponsors/kaysoft.webp" alt="Kaysoft" class="logo logo-transform" />
+    </button>
+  </div>
+  <pre>
+    <code data-trim data-line-numbers class="hljs css">
+    .logo-transform {
+      transition: rotate 0.3s ease-out,
+        scale 0.3s ease-out,
+        translate 0.3s ease-out;
+    }
+
+    .logo-transform:hover,
+    .logo-transform:focus-visible {
+      rotate: 5deg;
+      scale: 1.15;
+      translate: 0 -8px;
+    }
+    </code>
+  </pre>
+</section>

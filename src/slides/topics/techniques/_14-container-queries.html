@@ -1,0 +1,37 @@
+<!-- Slide 14: Container Queries Choreography -->
+<!-- Speaker notes: Container queries adapt animation speed based on container size. Smaller containers get slower animations for readability. -->
+<section data-topic="container-queries" data-menu-title="Container queries" class="motion-slide">
+  <h3 class="motion-title">Container Queries</h3>
+  <small balance>Adapt animation density based on the component size, not the viewport size.</small>
+</section>
+
+<section data-topic="container-queries" data-menu-title="Container queries" class="motion-slide">
+  <h4>Demo</h4>
+  <div class="grid-logos motion-grid-2" style="max-width: 900px">
+    <div class="motion-frame">
+      <small balance>Wide container (fast)</small>
+      <div class="grid-logos motion-grid-2" style="padding: 1rem; gap: 1rem">
+        <img src="./assets/sponsors/storyblok.webp" alt="Storyblok" class="logo logo-cq logo-property" style="width: 120px" />
+        <img src="./assets/sponsors/namirial.webp" alt="Namirial" class="logo logo-cq logo-property" style="width: 120px; animation-delay: 0.3s" />
+      </div>
+    </div>
+    <div class="motion-frame" style="width: 280px">
+      <small balance>Narrow container (slow)</small>
+      <div class="grid-logos" style="padding: 1rem; gap: 1rem; grid-template-columns: 1fr">
+        <img src="./assets/sponsors/orbyta-tech.webp" alt="Orbyta Tech" class="logo logo-cq logo-property" style="width: 120px" />
+        <img src="./assets/sponsors/kaysoft.webp" alt="Kaysoft" class="logo logo-cq logo-property" style="width: 120px; animation-delay: 0.3s" />
+      </div>
+    </div>
+  </div>
+  <pre>
+    <code data-trim data-line-numbers class="hljs css">
+    @container logos-grid (width < 400px) {
+      .logo-cq { animation-duration: 1s; }
+    }
+
+    @container logos-grid (width >= 700px) {
+      .logo-cq { animation-duration: 0.3s; }
+    }
+    </code>
+  </pre>
+</section>

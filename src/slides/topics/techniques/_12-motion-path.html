@@ -1,0 +1,27 @@
+<!-- Slide 12: Motion Path Orbit -->
+<!-- Speaker notes: offset-path creates motion paths. The logo orbits around the title using an ellipse path. -->
+<section data-topic="motion-path" data-menu-title="Motion path" class="motion-slide">
+  <h3 class="motion-title">Motion Path</h3>
+  <small balance>Animate an element along a path using <mark>offset-path</mark> and <mark>offset-distance</mark>.</small>
+</section>
+
+<section data-topic="motion-path" data-menu-title="Motion path" class="motion-slide">
+  <h4>Demo</h4>
+  <div class="orbit-container" style="margin-top: 2rem">
+    <h3 class="orbit-title">Kinetic CSS</h3>
+    <img src="./assets/sponsors/42de.svg" alt="42DE orbiting" class="logo orbit-logo" />
+    <img src="./assets/sponsors/welyk.svg" alt="Welyk orbiting" class="logo orbit-logo" style="animation-delay: -4s" />
+  </div>
+  <pre>
+    <code data-trim data-line-numbers class="hljs css">
+    .orbit-logo {
+      offset-path: ellipse(220px 100px at 50% 50%);
+      animation: orbit-path 8s linear infinite;
+    }
+
+    @keyframes orbit-path {
+      to { offset-distance: 100%; }
+    }
+    </code>
+  </pre>
+</section>

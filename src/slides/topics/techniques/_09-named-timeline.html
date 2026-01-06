@@ -1,0 +1,33 @@
+<!-- Slide 9: Named Timeline with timeline-scope -->
+<!-- Speaker notes: timeline-scope hoists a scroll-timeline to an ancestor. The hero logo animates based on the grid scroll. -->
+<section data-topic="named-timeline" data-menu-title="Named timelines" class="motion-slide">
+  <h3 class="motion-title">Named Timelines</h3>
+  <small balance>Use <mark>timeline-scope</mark> to share a scroll timeline with descendants.</small>
+</section>
+
+<section data-topic="named-timeline" data-menu-title="Named timelines" class="motion-slide timeline-container">
+  <h4>Demo</h4>
+  <div class="motion-split">
+    <div class="timeline-scroller motion-frame">
+      <div class="grid-logos motion-grid-2">
+        <img src="./assets/sponsors/storyblok.webp" alt="Storyblok" class="logo" />
+        <img src="./assets/sponsors/namirial.webp" alt="Namirial" class="logo" />
+        <img src="./assets/sponsors/orbyta-tech.webp" alt="Orbyta Tech" class="logo" />
+        <img src="./assets/sponsors/kaysoft.webp" alt="Kaysoft" class="logo" />
+        <img src="./assets/sponsors/hotel-cube.webp" alt="Hotel Cube" class="logo" />
+        <img src="./assets/sponsors/ciabot.webp" alt="Ciabot" class="logo" />
+      </div>
+    </div>
+    <div class="motion-side">
+      <small balance>Scroll the grid to animate the hero logo.</small>
+      <img src="./assets/sponsors/42de.svg" alt="42DE" class="logo hero-timeline-bound" />
+    </div>
+  </div>
+  <pre>
+    <code data-trim data-line-numbers class="hljs css">
+    .timeline-container { timeline-scope: --grid-timeline; }
+    .timeline-scroller { scroll-timeline: --grid-timeline block; }
+    .hero-timeline-bound { animation-timeline: --grid-timeline; }
+    </code>
+  </pre>
+</section>

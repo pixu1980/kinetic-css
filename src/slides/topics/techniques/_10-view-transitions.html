@@ -1,0 +1,38 @@
+<!-- Slide 10: View Transitions Same Document -->
+<!-- Speaker notes: View Transitions API for same-document state changes. Click a logo to toggle detail view with styled ::view-transition-* pseudos. -->
+<section data-topic="view-transitions" data-menu-title="View transitions" class="motion-slide">
+  <h3 class="motion-title">View Transitions API</h3>
+  <small balance>Same document morphing. Click a logo to transition from a grid to a detail view.</small>
+</section>
+
+<section data-topic="view-transitions" data-menu-title="View transitions" class="motion-slide">
+  <h4>Demo</h4>
+  <div id="vt-container" class="motion-vt">
+    <div id="vt-grid" class="grid-logos motion-grid-4">
+      <button type="button" class="motion-btn-reset logo-vt-btn" data-logo="storyblok">
+        <img src="./assets/sponsors/storyblok.webp" alt="Storyblok" class="logo logo-vt" style="--vt-name: logo-detail" />
+      </button>
+      <button type="button" class="motion-btn-reset logo-vt-btn" data-logo="namirial">
+        <img src="./assets/sponsors/namirial.webp" alt="Namirial" class="logo logo-vt" style="--vt-name: logo-detail" />
+      </button>
+      <button type="button" class="motion-btn-reset logo-vt-btn" data-logo="orbyta-tech">
+        <img src="./assets/sponsors/orbyta-tech.webp" alt="Orbyta Tech" class="logo logo-vt" style="--vt-name: logo-detail" />
+      </button>
+      <button type="button" class="motion-btn-reset logo-vt-btn" data-logo="kaysoft">
+        <img src="./assets/sponsors/kaysoft.webp" alt="Kaysoft" class="logo logo-vt" style="--vt-name: logo-detail" />
+      </button>
+    </div>
+    <div id="vt-detail" class="detail-state" aria-live="polite" hidden>
+      <img id="vt-detail-img" alt="" class="logo logo-vt" style="--vt-name: logo-detail" />
+      <p id="vt-detail-name" class="motion-vt-title"></p>
+      <button type="button" id="vt-back-btn" class="motion-btn">Back to grid</button>
+    </div>
+  </div>
+  <pre>
+    <code data-trim data-line-numbers class="hljs js">
+    document.startViewTransition(() => {
+      // Toggle the DOM state
+    });
+    </code>
+  </pre>
+</section>

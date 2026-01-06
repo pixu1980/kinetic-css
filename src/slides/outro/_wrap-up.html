@@ -1,6 +1,7 @@
 <section>
   <section data-transition="convex">
     <h4>Wrapping up</h4>
+    <small balance>We built a motion toolkit using modern CSS APIs, then combined them into small scenes.</small>
   </section>
   <section data-transition="convex">
     <comparison>
@@ -8,10 +9,10 @@
         <h4>Pros</h4>
         <small>
           <ul>
-            <li class="fragment">pro 1</li>
-            <li class="fragment">pro 2</li>
-            <li class="fragment">pro 3</li>
-            <li class="fragment">pro 4</li>
+            <li class="fragment">Less JavaScript, fewer moving parts</li>
+            <li class="fragment">Compositional motion: layers, timing, and reuse</li>
+            <li class="fragment">Performance friendly primitives (transform, opacity)</li>
+            <li class="fragment">Accessibility hooks: prefers reduced motion, focus</li>
           </ul>
         </small>
       </left>
@@ -19,10 +20,10 @@
         <h4>Cons</h4>
         <small>
           <ul>
-            <li class="fragment">con 1</li>
-            <li class="fragment">con 2</li>
-            <li class="fragment">con 3</li>
-            <li class="fragment">con 4</li>
+            <li class="fragment">Support varies: check Baseline and use @supports</li>
+            <li class="fragment">More CSS skills required (math, timelines, stacking)</li>
+            <li class="fragment">Debugging motion can be tricky without good tooling</li>
+            <li class="fragment">Some features are still evolving (syntax, edge cases)</li>
           </ul>
         </small>
       </right>
@@ -30,5 +31,13 @@
   </section>
   <section data-transition="convex">
     <h4>Conclusions</h4>
+    <small balance> Motion is not decoration. It is choreography: state, timing, and meaning. Use CSS as the primary language, then add JavaScript only when you must. </small>
+    <small>
+      <ul>
+        <li class="fragment">Start with one primitive and ship it</li>
+        <li class="fragment">Layer techniques instead of rewriting everything</li>
+        <li class="fragment">Keep fallbacks and reduced motion in mind</li>
+      </ul>
+    </small>
   </section>
 </section>

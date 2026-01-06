@@ -1,0 +1,657 @@
+/* Motion Primitives - Kinetic CSS */
+
+/* ========================================
+   @property Definitions
+   ======================================== */
+
+@property --t {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
+@property --scale {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 1;
+}
+
+@property --rotate {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@property --hue-shift {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
+@property --wave-offset {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
+@property --depth {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+
+/* ========================================
+   Base Logo Styles
+   ======================================== */
+
+.logo {
+  width: 25rem;
+  height: auto;
+  display: block;
+  object-fit: contain;
+  will-change: transform, opacity;
+}
+
+.grid-logos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 2rem;
+  justify-items: center;
+  align-items: center;
+  padding: 2rem;
+  container-type: inline-size;
+  container-name: logos-grid;
+  inline-size: 25vw;
+}
+
+/* ========================================
+   Slide 3: @starting-style Hero Enter
+   ======================================== */
+
+.hero-logo {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  transition:
+    opacity 0.8s ease-out,
+    transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  @starting-style {
+    opacity: 0;
+    transform: scale(0.5) translateY(40px);
+  }
+}
+
+/* ========================================
+   Slide 5: Sponsors Initial Entrance
+   ======================================== */
+
+.sponsor-enter {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  transition:
+    opacity 0.6s ease-out,
+    transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition-delay: calc(var(--i, 0) * 80ms);
+
+  @starting-style {
+    opacity: 0;
+    transform: translateY(30px) scale(0.8);
+  }
+}
+
+/* ========================================
+   Slide 6: Individual Transforms Hover
+   ======================================== */
+
+.logo-transform {
+  transition:
+    rotate 0.3s ease-out,
+    scale 0.3s ease-out,
+    translate 0.3s ease-out;
+}
+
+.logo-transform:hover,
+.logo-transform:focus-visible {
+  rotate: 5deg;
+  scale: 1.15;
+  translate: 0 -8px;
+}
+
+/* ========================================
+   Slide 7: @property Animated Variables
+   ======================================== */
+
+@keyframes property-dance {
+  0% {
+    --t: 0;
+    --scale: 1;
+    --rotate: 0deg;
+  }
+  25% {
+    --t: 0.25;
+    --scale: 1.2;
+    --rotate: 10deg;
+  }
+  50% {
+    --t: 0.5;
+    --scale: 1;
+    --rotate: 0deg;
+  }
+  75% {
+    --t: 0.75;
+    --scale: 1.2;
+    --rotate: -10deg;
+  }
+  100% {
+    --t: 1;
+    --scale: 1;
+    --rotate: 0deg;
+  }
+}
+
+.logo-property {
+  animation: property-dance 3s ease-in-out infinite;
+  transform: scale(var(--scale)) rotate(var(--rotate));
+}
+
+/* ========================================
+   Slide 8: View Timeline Reveal
+   ======================================== */
+
+@keyframes reveal-in {
+  from {
+    opacity: 0;
+    transform: translateY(50px) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.logo-view-timeline {
+  animation: reveal-in linear both;
+  animation-timeline: view();
+  animation-range: entry 0% entry 100%;
+}
+
+/* ========================================
+   Slide 9: Named Timeline with timeline-scope
+   ======================================== */
+
+.timeline-container {
+  timeline-scope: --grid-timeline;
+}
+
+.timeline-scroller {
+  overflow-y: auto;
+  max-height: 400px;
+  scroll-timeline: --grid-timeline block;
+}
+
+@keyframes hero-scroll-sync {
+  from {
+    transform: scale(0.8) rotate(-5deg);
+    opacity: 0.5;
+  }
+  to {
+    transform: scale(1.2) rotate(5deg);
+    opacity: 1;
+  }
+}
+
+.hero-timeline-bound {
+  animation: hero-scroll-sync linear both;
+  animation-timeline: --grid-timeline;
+}
+
+/* ========================================
+   Slide 10: View Transitions
+   ======================================== */
+
+.logo-vt {
+  view-transition-name: var(--vt-name);
+  cursor: pointer;
+}
+
+.detail-state {
+  display: none;
+}
+
+.detail-state.active {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+::view-transition-old(logo-detail) {
+  animation: 0.3s ease-out both fade-out-scale;
+}
+
+::view-transition-new(logo-detail) {
+  animation: 0.3s ease-in both fade-in-scale;
+}
+
+@keyframes fade-out-scale {
+  to {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+
+@keyframes fade-in-scale {
+  from {
+    opacity: 0;
+    transform: scale(1.1);
+  }
+}
+
+/* ========================================
+   Slide 11: Anchor Positioning + Popover
+   ======================================== */
+
+.anchor-logo {
+  anchor-name: --logo-anchor;
+}
+
+.logo-popover {
+  position: fixed;
+  position-anchor: --logo-anchor;
+  top: anchor(bottom);
+  left: anchor(center);
+  translate: -50% 8px;
+  margin: 0;
+  padding: 1rem 1.5rem;
+  background: oklch(0.2 0.02 250 / 0.95);
+  border: 1px solid oklch(0.5 0.1 250);
+  border-radius: 8px;
+  color: white;
+  backdrop-filter: blur(8px);
+
+  p {
+    margin: 0.5rem 0 0;
+    font-size: 0.9rem;
+    opacity: 0.8;
+  }
+
+  &::backdrop {
+    background: oklch(0 0 0 / 0.3);
+  }
+}
+
+/* ========================================
+   Slide 12: Motion Path Orbit
+   ======================================== */
+
+@keyframes orbit-path {
+  to {
+    offset-distance: 100%;
+  }
+}
+
+.orbit-container {
+  position: relative;
+  width: 500px;
+  height: 300px;
+  margin: 0 auto;
+}
+
+.orbit-title {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+.orbit-logo {
+  position: absolute;
+  offset-path: ellipse(220px 100px at 50% 50%);
+  offset-rotate: 0deg;
+  animation: orbit-path 8s linear infinite;
+  width: 80px;
+}
+
+/* ========================================
+   Slide 13: @starting-style + transition-behavior
+   ======================================== */
+
+.discrete-panel {
+  opacity: 1;
+  display: block;
+  transform: translateX(0);
+  transition:
+    opacity 0.4s ease,
+    transform 0.4s ease,
+    display 0.4s allow-discrete;
+
+  @starting-style {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+}
+
+.discrete-panel[hidden] {
+  opacity: 0;
+  transform: translateX(30px);
+  display: none;
+}
+
+/* ========================================
+   Slide 14: Container Queries Choreography
+   ======================================== */
+
+@container logos-grid (width < 400px) {
+  .logo-cq {
+    animation-duration: 1s;
+  }
+}
+
+@container logos-grid (width >= 400px) and (width < 700px) {
+  .logo-cq {
+    animation-duration: 0.6s;
+  }
+}
+
+@container logos-grid (width >= 700px) {
+  .logo-cq {
+    animation-duration: 0.3s;
+  }
+}
+
+/* ========================================
+   Slide 15: Trigonometry Wave
+   ======================================== */
+
+@keyframes trig-wave {
+  0%,
+  100% {
+    --wave-offset: 0;
+  }
+  50% {
+    --wave-offset: 1;
+  }
+}
+
+.logo-trig {
+  --phase: calc(var(--i, 0) * 0.5);
+  animation: trig-wave 2s ease-in-out infinite;
+  animation-delay: calc(var(--phase) * 200ms);
+  width: 100px;
+  transform: translateY(calc(sin(var(--wave-offset) * 3.14159 + var(--phase)) * 30px)) scale(calc(1 + cos(var(--wave-offset) * 3.14159 + var(--phase)) * 0.1));
+}
+
+/* ========================================
+   Slide 16: 3D Deep Card
+   ======================================== */
+
+.deep-card-container {
+  perspective: 1000px;
+}
+
+.deep-card {
+  transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  width: 280px;
+  height: 200px;
+  background: oklch(0.2 0.05 var(--card-hue, 250));
+  border-radius: 16px;
+  border: 1px solid oklch(0.4 0.1 var(--card-hue, 250));
+  padding: 1.5rem;
+  cursor: pointer;
+  position: relative;
+  color: white;
+}
+
+.deep-card:hover,
+.deep-card:focus-within {
+  transform: rotateY(15deg) rotateX(-10deg) translateZ(50px);
+}
+
+.deep-card-face {
+  backface-visibility: hidden;
+  display: grid;
+  place-items: center;
+  height: 100%;
+}
+
+.deep-card-back {
+  position: absolute;
+  inset: 0;
+  transform: rotateY(180deg);
+  backface-visibility: hidden;
+  display: grid;
+  place-items: center;
+  background: oklch(0.25 0.05 250);
+  border-radius: 12px;
+}
+
+/* ========================================
+   Slide 17: Animation Composition
+   ======================================== */
+
+@keyframes spin {
+  to {
+    rotate: 360deg;
+  }
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    scale: 1;
+  }
+  50% {
+    scale: 1.15;
+  }
+}
+
+.logo-composed {
+  animation:
+    spin 4s linear infinite,
+    breathe 2s ease-in-out infinite;
+  animation-composition: add;
+}
+
+/* ========================================
+   Slide 18: Prefers Reduced Motion
+   ======================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .logo-reduced-demo {
+    outline: 3px dashed oklch(0.7 0.15 30);
+    outline-offset: 4px;
+  }
+}
+
+.logo-reduced-demo {
+  transition: transform 0.3s ease;
+}
+
+.logo-reduced-demo:hover {
+  transform: scale(1.1);
+}
+
+/* ========================================
+   Slide 19: Finale Choreography Pulse
+   ======================================== */
+
+@keyframes finale-pulse {
+  0% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  50% {
+    transform: scale(1.1);
+    filter: brightness(1.3);
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}
+
+.motion-finale-grid {
+  width: 25vw;
+  touch-action: none;
+}
+
+.logo-finale {
+  --proximity: 0;
+  animation: none;
+  transform: scale(calc(1 + var(--proximity) * 0.6));
+  transform-origin: center;
+  transition: transform 120ms linear;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .logo-finale {
+    transition: none;
+  }
+}
+
+/* ========================================
+   Focus Styles for Accessibility
+   ======================================== */
+
+.logo:focus-visible,
+button:focus-visible,
+[tabindex='0']:focus-visible {
+  outline: 3px solid oklch(0.7 0.2 200);
+  outline-offset: 4px;
+}
+
+/* ========================================
+   Utility Classes
+   ======================================== */
+
+.motion-slide {
+  display: grid;
+  place-items: center;
+  min-height: 100%;
+  padding: 2rem;
+}
+
+.motion-title {
+  font-size: clamp(2rem, 5vw, 4rem);
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.motion-subtitle {
+  font-size: clamp(1rem, 2.5vw, 1.5rem);
+  opacity: 0.8;
+  text-align: center;
+}
+
+.hero-logo-container {
+  margin-top: 2rem;
+  display: grid;
+  place-items: center;
+}
+
+.motion-agenda {
+  font-size: 1.2rem;
+  line-height: 2;
+  list-style: none;
+  padding: 0;
+  margin: 1.5rem 0 0;
+}
+
+.motion-btn-reset {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+.motion-btn {
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  border: 1px solid oklch(0.5 0.1 250);
+  background: oklch(0.2 0.02 250);
+  color: white;
+  cursor: pointer;
+}
+
+.motion-frame {
+  border: 1px solid oklch(0.5 0.1 250);
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.motion-scrollbox {
+  max-height: 350px;
+  overflow-y: auto;
+  margin-top: 2rem;
+}
+
+.motion-grid-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.motion-grid-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.motion-grid-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.motion-panel {
+  padding: 2rem;
+  border-radius: 12px;
+  text-align: center;
+
+  .logo {
+    width: 128px;
+    margin: 0 auto;
+  }
+}
+
+.motion-split {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2rem;
+  align-items: start;
+  margin-top: 2rem;
+}
+
+.motion-side {
+  text-align: center;
+  display: grid;
+  gap: 1rem;
+  justify-items: center;
+}
+
+.motion-vt {
+  margin-top: 2rem;
+  min-height: 300px;
+}
+
+.motion-vt-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.code-hint {
+  font-family: 'Fira Code', monospace;
+  font-size: 0.9em;
+  padding: 0.2em 0.5em;
+  background: oklch(0.2 0.02 250);
+  border-radius: 4px;
+  color: oklch(0.8 0.1 200);
+}
