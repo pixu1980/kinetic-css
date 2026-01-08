@@ -1,0 +1,169 @@
+<!-- Slide: Gaussian Curve - Sponsors on a Bell Curve -->
+<!-- Speaker notes: Demonstrates positioning elements along a gaussian distribution curve using pure CSS custom properties and clip-path. No SVG, no JavaScript. -->
+<section>
+  <section data-topic="gaussian-curve" data-menu-title="Gaussian Curve">
+    <h4 balance>
+      Gaussian-like Curve with our<br />
+      "breathing" <mark>16 Sponsors</mark>
+    </h4>
+  </section>
+  <section data-topic="gaussian-curve" data-menu-title="Gaussian Curve">
+    <figure class="gaussian-container" role="img" aria-label="Gaussian curve with sponsors positioned along the bell curve">
+      <!-- Curve background with clip-path -->
+      <div class="gaussian-curve-bg"></div>
+      <!-- Mean line -->
+      <div class="gaussian-mean-line"></div>
+      <!-- Logo positions computed at runtime using sibling-index(), sibling-count(), exp(), pow() -->
+      <div class="gaussian-logos">
+        <div class="gaussian-logo" aria-label="42DE">
+          <img src="./assets/sponsors/42de.webp" alt="42DE" loading="lazy" />
+        </div>
+        <div class="gaussian-logo" aria-label="Andrea Carratta">
+          <img src="./assets/sponsors/andrea-carratta.webp" alt="Andrea Carratta" loading="lazy" />
+        </div>
+        <div class="gaussian-logo" aria-label="Arrow Worm">
+          <img src="./assets/sponsors/arrow-worm.webp" alt="Arrow Worm" loading="lazy" />
+        </div>
+        <div class="gaussian-logo" aria-label="Ciabot">
+          <img src="./assets/sponsors/ciabot.webp" alt="Ciabot" loading="lazy" />
+        </div>
+        <div class="gaussian-logo" aria-label="Fattutto">
+          <img src="./assets/sponsors/fattutto.webp" alt="Fattutto" loading="lazy" />
+        </div>
+        <div class="gaussian-logo" aria-label="Geeks Creations">
+          <img src="./assets/sponsors/geeks-creations.webp" alt="Geeks Creations" loading="lazy" />
+        </div>
+        <div class="gaussian-logo" aria-label="Hotel Cube">
+          <img src="./assets/sponsors/hotel-cube.webp" alt="Hotel Cube" loading="lazy" />
+        </div>
+        <div class="gaussian-logo" aria-label="Kaysoft">
+          <img src="./assets/sponsors/kaysoft.webp" alt="Kaysoft" loading="lazy" />
+        </div>
+        <div class="gaussian-logo" aria-label="Namirial">
+          <img src="./assets/sponsors/namirial.webp" alt="Namirial" loading="lazy" />
+        </div>
+        <div class="gaussian-logo" aria-label="Nopos">
+          <img src="./assets/sponsors/nopos.webp" alt="Nopos" loading="lazy" />
+        </div>
+        <div class="gaussian-logo" aria-label="Orbyta Tech">
+          <img src="./assets/sponsors/orbyta-tech.webp" alt="Orbyta Tech" loading="lazy" />
+        </div>
+        <div class="gaussian-logo" aria-label="Quantik Mind">
+          <img src="./assets/sponsors/quantik-mind.webp" alt="Quantik Mind" loading="lazy" />
+        </div>
+        <div class="gaussian-logo" aria-label="Storyblok">
+          <img src="./assets/sponsors/storyblok.webp" alt="Storyblok" loading="lazy" />
+        </div>
+        <div class="gaussian-logo" aria-label="Taktik Flowr">
+          <img src="./assets/sponsors/taktik-flowr.webp" alt="Taktik Flowr" loading="lazy" />
+        </div>
+        <div class="gaussian-logo" aria-label="Torino .NET">
+          <img src="./assets/sponsors/torino-dotnet.webp" alt="Torino .NET" loading="lazy" />
+        </div>
+        <div class="gaussian-logo" aria-label="Welyk">
+          <img src="./assets/sponsors/welyk.webp" alt="Welyk" loading="lazy" />
+        </div>
+      </div>
+      <!-- Axis labels -->
+      <span class="gaussian-label gaussian-label--left">-3σ</span>
+      <span class="gaussian-label gaussian-label--center">μ</span>
+      <span class="gaussian-label gaussian-label--right">+3σ</span>
+    </figure>
+  </section>
+  <section data-topic="gaussian-curve" data-menu-title="Gaussian Curve">
+    <small balance> Runtime gaussian calculation using <mark>sibling-index()</mark>, <mark>sibling-count()</mark>, <mark>exp()</mark>, and <mark>pow()</mark>. </small>
+    <pre>
+      <code class="hljs css" data-trim data-line-numbers="|6-8|18-23|30-35">
+.gaussian-container {
+  --curve-width: 90%;
+  --curve-height: 35rem;
+  --logo-size: 7rem;
+
+  /* Gaussian parameters: μ = 50 (center), σ = 18 (spread) */
+  --mu: 50;
+  --sigma: 18;
+
+  position: relative;
+  width: var(--curve-width);
+  height: calc(var(--curve-height) + var(--logo-size) + 2.5rem);
+}
+
+/* Individual logo - uses sibling-index() and sibling-count() for dynamic positioning
+  Gaussian y-value computed at runtime using the same formula as the curve shape */
+.gaussian-logo {
+  /* Calculate x position as percentage (0 to 100) based on index
+    sibling-index() is 1-based, so subtract 1 for 0-based positioning */
+  --x-percent: calc((sibling-index() - 1) / (sibling-count() - 1) * 100);
+
+  /* Calculate gaussian y-value at runtime: f(x) = e^(-(x-μ)²/(2σ²)) */
+  --gaussian-y: exp(calc(-1 * pow(var(--x-percent) - var(--mu), 2) / (2 * pow(var(--sigma), 2))));
+
+  position: absolute;
+  left: calc(var(--x-percent) * 1%);
+  bottom: calc(var(--gaussian-y) * var(--curve-height));
+  width: var(--logo-size);
+  height: var(--logo-size);
+  transform: 
+    translate(-50%, 50%) 
+    scale(calc(
+      (0.7 + var(--gaussian-y) * 0.3) * 
+      var(--logo-breath-scale, 1)
+    ));
+    
+  ...
+}
+      </code>
+    </pre>
+    <aside class="notes">
+      No precomputed values! The gaussian is calculated at runtime using CSS math functions. sibling-index() provides the element's position, sibling-count() the total count. exp() and pow() compute
+      the bell curve formula directly in CSS. shape() generates the curve background with the same math, ensuring perfect alignment.
+    </aside>
+  </section>
+  <section data-topic="gaussian-curve" data-menu-title="Gaussian Curve">
+    <small balance> The <mark>"breathing" animation</mark> transitions a registered <mark>@property</mark> for scaling up the logos and <mark>sibling-index()</mark> for properly delaying </small>
+    <pre>
+      <code class="hljs css" data-trim data-line-numbers="|12|4-9|16-20|22-31">
+.gaussian-logo {
+  ...
+  
+  transform: 
+    translate(-50%, 50%) 
+    scale(calc(
+      (0.7 + var(--gaussian-y) * 0.3) * 
+      var(--logo-breath-scale, 1)
+    ));
+
+  animation: gaussian-breath 4s linear infinite;
+  animation-delay: calc((sibling-index() - 1) * .5s);
+  animation-fill-mode: both;
+}
+
+@property --logo-breath-scale {
+  syntax: '&lt;number&gt;';
+  initial-value: 1;
+  inherits: false;
+}
+
+@keyframes gaussian-breath {
+  0%,
+  100% {
+    --logo-breath-scale: 1;
+  }
+
+  50% {
+    --logo-breath-scale: 1.2;
+  }
+}
+      </code>
+    </pre>
+    <aside class="notes">
+      No precomputed values! The gaussian is calculated at runtime using CSS math functions. sibling-index() provides the element's position, sibling-count() the total count. exp() and pow() compute
+      the bell curve formula directly in CSS. shape() generates the curve background with the same math, ensuring perfect alignment.
+    </aside>
+  </section>
+  <section data-topic="gaussian-curve" data-menu-title="Gaussian Curve">
+    <h3>Advanced with CSS <mark>Math</mark></h3>
+    <small balance>Position elements along a bell curve using CSS <mark>exp()</mark> and <mark>pow()</mark> functions: zero SVG, zero JavaScript... just pure stylesheet magic.</small>
+    <baseline-status featureId="exp-functions"></baseline-status>
+  </section>
+</section>

@@ -715,10 +715,18 @@ function hmrAccept(bundle /*: ParcelRequire */ , id /*: string */ ) {
 
 },{}],"8JWvp":[function(require,module,exports,__globalThis) {
 var _core = require("@pixu-talks/core");
+var _baselineStatusJs = require("./baseline-status/baseline-status.js");
 var _doodleJs = require("./_doodle.js");
-var _motionJs = require("./_motion.js");
+var _slideHooksJs = require("./_slide-hooks.js");
+var _07TiltLayeredCardJs = require("./_07-tilt-layered-card.js");
+/**
+ * Initialize all motion JavaScript
+ */ document.addEventListener('DOMContentLoaded', ()=>{
+    (0, _slideHooksJs.initSlideHooks)();
+    (0, _07TiltLayeredCardJs.initTiltLayeredCard)();
+});
 
-},{"@pixu-talks/core":"h8Z3C","./_doodle.js":"8IfSn","./_motion.js":"dVntc"}],"h8Z3C":[function(require,module,exports,__globalThis) {
+},{"@pixu-talks/core":"h8Z3C","./baseline-status/baseline-status.js":"1sNcI","./_doodle.js":"8IfSn","./_slide-hooks.js":"292LN","./_07-tilt-layered-card.js":"iJGvL"}],"h8Z3C":[function(require,module,exports,__globalThis) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 var _indexJs = require("./polyfills/index.js");
 var _revealJs = require("reveal.js");
@@ -53537,397 +53545,945 @@ window.pixuTalks = {
     }
 };
 
-},{}],"8IfSn":[function(require,module,exports,__globalThis) {
-// Doodle JS - Fresh start: draggable title
+},{}],"1sNcI":[function(require,module,exports,__globalThis) {
+// Baseline Status Web Component (vanilla JS)
+// - Autonomous custom element (no Shadow DOM, no <template>)
+// - Fetches Baseline info from https://api.webstatus.dev
+// - Assets (CSS, SVG, HTML) imported as text via Parcel bundle-text: pipeline
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
-const title = document.querySelector(".title");
-const stage = title?.closest(".stage");
-if (title && stage) {
-    const clampPercentage = (value)=>Math.max(0, Math.min(100, value));
-    const formatPercent = (value)=>`${value.toFixed(3)}%`;
-    const trailConfigs = [
-        {
-            selector: ".orbit--inner",
-            speed: 0.27
-        },
-        {
-            selector: ".orbit--middle",
-            speed: 0.2
-        },
-        {
-            selector: ".orbit--outer",
-            speed: 0.13
-        },
-        {
-            selector: ".orbit--fourth",
-            speed: 0.09
-        },
-        {
-            selector: ".orbit--fifth",
-            speed: 0.06
+// inject component styles once
+parcelHelpers.export(exports, "BaselineStatus", ()=>BaselineStatus);
+var _baselineStatusCss = require("bundle-text:./baseline-status.css");
+var _baselineStatusCssDefault = parcelHelpers.interopDefault(_baselineStatusCss);
+var _baselineStatusConstantsJs = require("./baseline-status.constants.js");
+var _baselineStatusUtilsJs = require("./baseline-status.utils.js");
+class BaselineStatus extends HTMLElement {
+    static get observedAttributes() {
+        return [
+            "feature-id",
+            "featureId",
+            "provider",
+            "mdn-path"
+        ];
+    }
+    constructor(){
+        super();
+        this._ctrl = null;
+        this._data = null;
+        this._loading = false;
+        (0, _baselineStatusUtilsJs.ensureStyles)((0, _baselineStatusCssDefault.default));
+    }
+    connectedCallback() {
+        this._renderLoading();
+        this._fetchAndRender();
+    }
+    disconnectedCallback() {
+        if (this._ctrl) this._ctrl.abort();
+    }
+    attributeChangedCallback(name) {
+        if (name === "feature-id" || name === "featureId" || name === "provider" || name === "mdn-path") {
+            const fid = this.getAttribute("feature-id") || this.getAttribute("featureId");
+            if (fid && this.getAttribute("feature-id") !== fid) this.setAttribute("feature-id", fid);
+            this._fetchAndRender();
         }
-    ];
-    const orbitTrail = trailConfigs.map((config)=>{
-        const element = stage.querySelector(config.selector);
-        if (!element) return null;
-        const state = {
-            element,
-            speed: config.speed,
-            currentX: 50,
-            currentY: 50,
-            targetX: 50,
-            targetY: 50
-        };
-        element.style.setProperty("--orbit-x", formatPercent(state.currentX));
-        element.style.setProperty("--orbit-y", formatPercent(state.currentY));
-        return state;
-    }).filter(Boolean);
-    const animateOrbitTrail = ()=>{
-        orbitTrail.forEach((orbit)=>{
-            orbit.currentX += (orbit.targetX - orbit.currentX) * orbit.speed;
-            orbit.currentY += (orbit.targetY - orbit.currentY) * orbit.speed;
-            orbit.element.style.setProperty("--orbit-x", formatPercent(orbit.currentX));
-            orbit.element.style.setProperty("--orbit-y", formatPercent(orbit.currentY));
+    }
+    get featureId() {
+        return this.getAttribute("feature-id") || this.getAttribute("featureId") || "";
+    }
+    get provider() {
+        return this.getAttribute("provider") || (0, _baselineStatusConstantsJs.API_PROVIDER_DEFAULT);
+    }
+    set provider(v) {
+        if (v == null) this.removeAttribute("provider");
+        else this.setAttribute("provider", String(v));
+    }
+    get mdnPath() {
+        return this.getAttribute("mdn-path") || "";
+    }
+    set mdnPath(v) {
+        if (v == null) this.removeAttribute("mdn-path");
+        else this.setAttribute("mdn-path", String(v));
+    }
+    set featureId(v) {
+        if (v == null) this.removeAttribute("feature-id");
+        else this.setAttribute("feature-id", String(v));
+    }
+    _renderLoading() {
+        const html = (0, _baselineStatusUtilsJs.renderTemplate)((0, _baselineStatusConstantsJs.TPL_LOADING), {
+            featureName: (0, _baselineStatusUtilsJs.escapeHTML)(this.featureId || "Loading feature..."),
+            baselineGlyph: (0, _baselineStatusUtilsJs.renderBaselineGlyph)("no_data"),
+            chromeIcon: this._browserImg("chrome"),
+            edgeIcon: this._browserImg("edge"),
+            firefoxIcon: this._browserImg("firefox"),
+            safariIcon: this._browserImg("safari"),
+            noDataIcon: (0, _baselineStatusConstantsJs.SUPPORT_ICONS).no_data,
+            chevronIcon: (0, _baselineStatusConstantsJs.ICON_CHEVRON)
         });
-        requestAnimationFrame(animateOrbitTrail);
-    };
-    if (orbitTrail.length) requestAnimationFrame(animateOrbitTrail);
-    let autoFrameId = null;
-    let autoListenersAttached = false;
-    let autoPlaying = true;
-    let autoPhase = 0;
-    let lastAutoTimestamp = null;
-    const handleUserPointer = ()=>{
-        disableAutoMotion();
-    };
-    const disableAutoMotion = ()=>{
-        if (!autoPlaying) return;
-        autoPlaying = false;
-        if (autoFrameId !== null) {
-            cancelAnimationFrame(autoFrameId);
-            autoFrameId = null;
-        }
-        if (autoListenersAttached) {
-            stage.removeEventListener("pointermove", handleUserPointer);
-            stage.removeEventListener("pointerdown", handleUserPointer);
-            autoListenersAttached = false;
-        }
-        lastAutoTimestamp = null;
-    };
-    const enableAutoListeners = ()=>{
-        if (autoListenersAttached) return;
-        stage.addEventListener("pointermove", handleUserPointer, {
-            passive: true
+        this.innerHTML = html;
+    }
+    _render(feature) {
+        const baseline = feature?.baseline?.status || "no_data";
+        const title = (0, _baselineStatusConstantsJs.BASELINE_DEFS)[baseline]?.title || (0, _baselineStatusConstantsJs.BASELINE_DEFS).no_data.title;
+        const { label: baselineDateLabel, year } = (0, _baselineStatusUtilsJs.getBaselineDateParts)(feature);
+        const { label: latestImplLabel } = (0, _baselineStatusUtilsJs.getLatestImplementationDateParts)(feature);
+        const badge = baseline === "newly" ? '<span class="baseline-badge">newly available</span>' : "";
+        const description = (0, _baselineStatusUtilsJs.descriptionFor)(baseline, baselineDateLabel);
+        const impl = feature?.browser_implementations || {};
+        const aria = this._buildAriaLabel(title, year, !!badge, impl);
+        const since = latestImplLabel ? `(since ${latestImplLabel})` : "";
+        const html = (0, _baselineStatusUtilsJs.renderTemplate)((0, _baselineStatusConstantsJs.TPL_MAIN), {
+            name: (0, _baselineStatusUtilsJs.escapeHTML)(feature?.name || this.featureId || "Unknown feature"),
+            aria: (0, _baselineStatusUtilsJs.escapeAttr)(aria),
+            baseline,
+            since,
+            baselineGlyph: (0, _baselineStatusUtilsJs.renderBaselineGlyph)(baseline),
+            baselineLabel: "<strong>Baseline</strong>",
+            title,
+            year,
+            badge,
+            chromeIcon: this._browserImg("chrome"),
+            edgeIcon: this._browserImg("edge"),
+            firefoxIcon: this._browserImg("firefox"),
+            safariIcon: this._browserImg("safari"),
+            chromeSupport: (0, _baselineStatusUtilsJs.renderSupportIcon)(baseline, impl.chrome),
+            edgeSupport: (0, _baselineStatusUtilsJs.renderSupportIcon)(baseline, impl.edge),
+            firefoxSupport: (0, _baselineStatusUtilsJs.renderSupportIcon)(baseline, impl.firefox),
+            safariSupport: (0, _baselineStatusUtilsJs.renderSupportIcon)(baseline, impl.safari),
+            chevronIcon: (0, _baselineStatusConstantsJs.ICON_CHEVRON),
+            description,
+            learnMore: baseline === "no_data" ? "" : this._buildLearnMoreLink(feature)
         });
-        stage.addEventListener("pointerdown", handleUserPointer);
-        autoListenersAttached = true;
-    };
-    const animateAutoMotion = (timestamp)=>{
-        if (!autoPlaying) return;
-        const cycle = 6000;
-        if (lastAutoTimestamp !== null) autoPhase += (timestamp - lastAutoTimestamp) / cycle;
-        lastAutoTimestamp = timestamp;
-        autoPhase %= 1;
-        const angle = autoPhase * Math.PI * 2;
-        const sinAngle = Math.sin(angle);
-        const cosAngle = Math.cos(angle);
-        const denom = sinAngle * sinAngle + 1;
-        const rawX = cosAngle / denom;
-        const rawY = sinAngle * cosAngle / denom;
-        const px = 50 + rawX * 26;
-        const py = 50 + rawY * 18;
-        setPosition(px, py);
-        autoFrameId = requestAnimationFrame(animateAutoMotion);
-    };
-    const startAutoMotion = ()=>{
-        autoPlaying = true;
-        enableAutoListeners();
-        if (autoFrameId !== null) cancelAnimationFrame(autoFrameId);
-        lastAutoTimestamp = null;
-        autoFrameId = requestAnimationFrame(animateAutoMotion);
-    };
-    const setPosition = (px, py)=>{
-        const clampedX = clampPercentage(px);
-        const clampedY = clampPercentage(py);
-        const xValue = formatPercent(clampedX);
-        const yValue = formatPercent(clampedY);
-        stage.style.setProperty("--title-x", xValue);
-        stage.style.setProperty("--title-y", yValue);
-        title.style.setProperty("--title-x", xValue);
-        title.style.setProperty("--title-y", yValue);
-        orbitTrail.forEach((orbit)=>{
-            orbit.targetX = clampedX;
-            orbit.targetY = clampedY;
+        this.innerHTML = html;
+    }
+    _buildLearnMoreLink(feature) {
+        // Prefer MDN url if present from BCD normalization
+        const mdn = feature?.learn_more_url;
+        if (mdn) return `<a href="${(0, _baselineStatusUtilsJs.escapeAttr)(mdn)}" target="_blank" rel="noopener noreferrer">Learn more on MDN</a>`;
+        const id = feature?.feature_id || this.featureId;
+        return `<a href="https://webstatus.dev/features/${(0, _baselineStatusUtilsJs.escapeAttr)(id)}" target="_blank" rel="noopener noreferrer">Learn more</a>`;
+    }
+    _browserImg(name) {
+        // Use data URI <img> to avoid inline SVG <defs> id collisions and paint issues
+        const svg = (0, _baselineStatusConstantsJs.BROWSER_ICONS)[name];
+        return (0, _baselineStatusUtilsJs.svgToImgTag)(svg, {
+            className: `browser-icon browser-icon-${name}`
         });
-    };
-    const calibrateVisualOffset = (attempt = 0)=>{
-        if (attempt > 5) return;
-        const styles = getComputedStyle(stage);
-        const posX = Number.parseFloat(styles.getPropertyValue("--title-x")) || 50;
-        const posY = Number.parseFloat(styles.getPropertyValue("--title-y")) || 50;
-        if (Math.abs(posX - 50) > 0.5 || Math.abs(posY - 50) > 0.5) return;
-        const stageRect = stage.getBoundingClientRect();
-        const titleRect = title.getBoundingClientRect();
-        if (!stageRect.height || !titleRect.height) return;
-        const delta = titleRect.top - stageRect.top + titleRect.height / 2 - stageRect.height / 2;
-        if (Math.abs(delta) < 0.2) return;
-        const computedOffset = getComputedStyle(stage).getPropertyValue("--title-offset");
-        const currentOffset = Number.parseFloat(computedOffset) || 0;
-        stage.style.setProperty("--title-offset", `${currentOffset + delta}px`);
-        requestAnimationFrame(()=>calibrateVisualOffset(attempt + 1));
-    };
-    let calibrationFrame = null;
-    const scheduleCalibration = ()=>{
-        if (calibrationFrame !== null) return;
-        calibrationFrame = requestAnimationFrame(()=>{
-            calibrationFrame = null;
-            calibrateVisualOffset();
-        });
-    };
-    let dragging = false;
-    let offsetX = 0;
-    let offsetY = 0;
-    const onPointerDown = (ev)=>{
-        ev.preventDefault();
-        handleUserPointer();
-        dragging = true;
-        title.setPointerCapture?.(ev.pointerId);
-        const rect = title.getBoundingClientRect();
-        const centerX = rect.left + rect.width / 2;
-        const centerY = rect.top + rect.height / 2;
-        offsetX = centerX - ev.clientX;
-        offsetY = centerY - ev.clientY;
-    };
-    const onPointerMove = (ev)=>{
-        if (!dragging) return;
-        ev.preventDefault();
-        const stageRect = stage.getBoundingClientRect();
-        const newCenterX = ev.clientX + offsetX;
-        const newCenterY = ev.clientY + offsetY;
-        const px = (newCenterX - stageRect.left) / stageRect.width * 100;
-        const py = (newCenterY - stageRect.top) / stageRect.height * 100;
-        setPosition(px, py);
-    };
-    const onPointerUp = (ev)=>{
-        if (!dragging) return;
-        ev.preventDefault();
-        dragging = false;
-        title.releasePointerCapture?.(ev.pointerId);
-        scheduleCalibration();
-    };
-    title.addEventListener("pointerdown", onPointerDown);
-    title.addEventListener("pointermove", onPointerMove);
-    title.addEventListener("pointerup", onPointerUp);
-    title.addEventListener("pointercancel", onPointerUp);
-    title.addEventListener("keydown", (e)=>{
-        const step = 2; // 2%
-        const styles = getComputedStyle(stage);
-        const currentX = Number.parseFloat(styles.getPropertyValue("--title-x") || "50");
-        const currentY = Number.parseFloat(styles.getPropertyValue("--title-y") || "50");
-        let px = currentX;
-        let py = currentY;
-        if (e.key === "ArrowLeft") px -= step;
-        else if (e.key === "ArrowRight") px += step;
-        else if (e.key === "ArrowUp") py -= step;
-        else if (e.key === "ArrowDown") py += step;
-        else return;
-        e.preventDefault();
-        setPosition(px, py);
-        scheduleCalibration();
-    });
-    let resizeFrame = null;
-    window.addEventListener("resize", ()=>{
-        if (resizeFrame) cancelAnimationFrame(resizeFrame);
-        resizeFrame = requestAnimationFrame(()=>{
-            resizeFrame = null;
-            scheduleCalibration();
-        });
-    });
-    if (document.fonts?.ready) document.fonts.ready.then(()=>{
-        scheduleCalibration();
-    });
-    setPosition(50, 50);
-    startAutoMotion();
-    scheduleCalibration();
-}
-
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"2qhxn"}],"dVntc":[function(require,module,exports,__globalThis) {
-/**
- * Motion JS Glue
- * Handles View Transitions API, popover toggles, and reveal.js slide hooks.
- */ /**
- * Initialize View Transitions demo
- * Transitions between a grid state and a detail state.
- */ const initViewTransitions = ()=>{
-    const container = document.querySelector("#vt-container");
-    if (!container) return;
-    const grid = container.querySelector("#vt-grid");
-    const detail = container.querySelector("#vt-detail");
-    const detailImg = container.querySelector("#vt-detail-img");
-    const detailName = container.querySelector("#vt-detail-name");
-    const backBtn = container.querySelector("#vt-back-btn");
-    if (!grid || !detail || !detailImg || !detailName || !backBtn) return;
-    const openDetail = (button)=>{
-        const img = button.querySelector("img");
-        if (!img) return;
-        detailImg.src = img.currentSrc || img.src;
-        detailImg.alt = img.alt;
-        detailName.textContent = img.alt;
-        grid.hidden = true;
-        detail.hidden = false;
-        detail.classList.add("active");
-    };
-    const closeDetail = ()=>{
-        detail.hidden = true;
-        detail.classList.remove("active");
-        grid.hidden = false;
-    };
-    const withViewTransition = (update)=>{
-        if (!document.startViewTransition) {
-            update();
+    }
+    _buildAriaLabel(title, year, isNewly, impl = {}) {
+        const toText = (v)=>v === "available" ? "yes" : v || "unknown";
+        const chrome = toText(impl.chrome?.status);
+        const edge = toText(impl.edge?.status);
+        const firefox = toText(impl.firefox?.status);
+        const safari = toText(impl.safari?.status);
+        const newly = isNewly ? " (newly available)" : "";
+        const y = year ? ` ${year}` : "";
+        return `Baseline: ${title}${y}${newly}. Supported in Chrome: ${chrome}. Supported in Edge: ${edge}. Supported in Firefox: ${firefox}. Supported in Safari: ${safari}.`;
+    }
+    async _fetchAndRender() {
+        const featureId = this.featureId;
+        if (!featureId) {
+            this._render({
+                baseline: {
+                    status: "no_data"
+                },
+                name: "Unknown feature"
+            });
             return;
         }
-        document.startViewTransition(()=>{
-            update();
-        });
-    };
-    container.querySelectorAll(".logo-vt-btn").forEach((button)=>{
-        button.addEventListener("click", ()=>{
-            withViewTransition(()=>openDetail(button));
-        });
-    });
-    backBtn.addEventListener("click", ()=>{
-        withViewTransition(()=>closeDetail());
-    });
-};
-/**
- * Initialize 3D card interactions
- * Adds keyboard support for 3D cards
- */ const initDeepCards = ()=>{
-    const deepCards = document.querySelectorAll(".deep-card");
-    deepCards.forEach((card)=>{
-        card.addEventListener("keydown", (event)=>{
-            if (event.key === "Enter" || event.key === " ") {
-                event.preventDefault();
-                card.classList.toggle("deep-card-active");
-            }
-        });
-        card.addEventListener("blur", ()=>{
-            card.classList.remove("deep-card-active");
-        });
-    });
-};
-/**
- * Initialize discrete transition panel toggles
- * Toggles the open state for discrete panels
- */ const initDiscretePanels = ()=>{
-    const toggles = document.querySelectorAll("[data-discrete-toggle]");
-    toggles.forEach((toggle)=>{
-        toggle.addEventListener("click", ()=>{
-            const targetId = toggle.dataset.discreteToggle;
-            const panel = document.querySelector(`#${targetId}`);
-            if (panel) panel.classList.toggle("open");
-        });
-    });
-};
-/**
- * Initialize trigonometry animation
- * Uses @property to animate --t from 0 to 1 continuously
- */ const initTrigAnimation = ()=>{
-    const trigLogos = document.querySelectorAll(".logo-trig");
-    if (trigLogos.length === 0) return;
-// Add animation to the parent or use CSS animation
-// The CSS handles this via @property --t animation
-};
-/**
- * Finale proximity scaling
- * Updates --proximity on each logo based on pointer distance.
- */ const initFinaleProximity = ()=>{
-    const container = document.querySelector("#finale-proximity");
-    if (!container) return;
-    const logos = Array.from(container.querySelectorAll(".logo-finale"));
-    if (logos.length === 0) return;
-    let lastPointerEvent = null;
-    let rafId = 0;
-    const reset = ()=>{
-        lastPointerEvent = null;
-        if (rafId) {
-            cancelAnimationFrame(rafId);
-            rafId = 0;
+        if (this._ctrl) this._ctrl.abort();
+        this._ctrl = new AbortController();
+        this._renderLoading();
+        try {
+            const data = await this._loadData(featureId);
+            this._data = data;
+            this._render(data);
+        } catch (err) {
+            if (err?.name === "AbortError") return;
+            this._render({
+                baseline: {
+                    status: "no_data"
+                },
+                name: featureId
+            });
         }
-        logos.forEach((logo)=>{
-            logo.style.setProperty("--proximity", "0");
+    }
+    async _loadData(featureId) {
+        const provider = this.provider;
+        if (provider === "webstatus") return await this._fetchWebstatus(featureId);
+        if (provider === "mdn") return await this._fetchMdnCompat(this.mdnPath || featureId);
+        // auto: try webstatus, then mdn
+        try {
+            const ws = await this._fetchWebstatus(featureId);
+            if (ws?.baseline?.status && ws.baseline.status !== "no_data") return ws;
+            // if webstatus returns no data, attempt mdn
+            const mdn = await this._fetchMdnCompat(this.mdnPath || featureId);
+            return mdn || ws;
+        } catch  {
+            // fallback to mdn if webstatus failed
+            const mdn = await this._fetchMdnCompat(this.mdnPath || featureId);
+            return mdn || {
+                baseline: {
+                    status: "no_data"
+                },
+                name: featureId
+            };
+        }
+    }
+    async _fetchWebstatus(featureId) {
+        const resp = await fetch((0, _baselineStatusConstantsJs.API_ENDPOINT_WEBSTATUS) + encodeURIComponent(featureId), {
+            signal: this._ctrl.signal,
+            cache: "force-cache"
         });
-    };
-    const update = ()=>{
-        rafId = 0;
-        if (!lastPointerEvent) return;
-        const containerRect = container.getBoundingClientRect();
-        const radius = Math.max(1, Math.min(containerRect.width, containerRect.height) * 0.6);
-        const px = lastPointerEvent.clientX;
-        const py = lastPointerEvent.clientY;
-        logos.forEach((logo)=>{
-            const rect = logo.getBoundingClientRect();
-            const cx = rect.left + rect.width / 2;
-            const cy = rect.top + rect.height / 2;
-            const dist = Math.hypot(px - cx, py - cy);
-            const proximity = 1 - Math.min(dist / radius, 1);
-            const eased = proximity * proximity;
-            logo.style.setProperty("--proximity", eased.toFixed(3));
-        });
-    };
-    const onPointerMove = (event)=>{
-        lastPointerEvent = event;
-        if (rafId) return;
-        rafId = requestAnimationFrame(update);
-    };
-    container.addEventListener("pointermove", onPointerMove, {
-        passive: true
-    });
-    container.addEventListener("pointerdown", onPointerMove, {
-        passive: true
-    });
-    container.addEventListener("pointerleave", reset);
+        if (!resp.ok) throw new Error(String(resp.status));
+        const json = await resp.json();
+        return json;
+    }
+    // Fetch MDN Browser Compat Data (BCD) and normalize to a shape like webstatus
+    async _fetchMdnCompat(pathOrId) {
+        // Accept dotted path like "javascript.classes.static_initialization_blocks"
+        // or a raw BCD JSON path like "data/javascript/classes.json#static_initialization_blocks"
+        try {
+            const { filePath, keyPath } = this._resolveMdnPath(pathOrId);
+            const url = (0, _baselineStatusConstantsJs.API_ENDPOINT_MDN_CDN) + filePath;
+            const resp = await fetch(url, {
+                signal: this._ctrl.signal,
+                cache: "force-cache"
+            });
+            if (!resp.ok) throw new Error(String(resp.status));
+            const json = await resp.json();
+            const entry = this._getByKeyPath(json, keyPath);
+            if (!entry || !entry.__compat) return {
+                baseline: {
+                    status: "no_data"
+                },
+                name: keyPath[keyPath.length - 1]
+            };
+            return this._normalizeFromBCD(entry, keyPath);
+        } catch  {
+            return {
+                baseline: {
+                    status: "no_data"
+                },
+                name: String(pathOrId)
+            };
+        }
+    }
+    _resolveMdnPath(input) {
+        // Examples:
+        // "javascript.classes.static_initialization_blocks"
+        // "data/javascript/classes.json#static_initialization_blocks"
+        if (input.includes("#")) {
+            const [file, hash] = input.split("#");
+            const area = this._areaFromFilePath(file);
+            const keyPath = [
+                area,
+                ...hash.split(".")
+            ];
+            return {
+                filePath: file,
+                keyPath
+            };
+        }
+        if (input.startsWith("data/")) {
+            // no hash provided, build key path from file root only
+            const area = this._areaFromFilePath(input);
+            return {
+                filePath: input,
+                keyPath: [
+                    area
+                ]
+            };
+        }
+        // map dotted domain path to BCD file
+        const parts = input.split(".");
+        const area = parts.shift();
+        const file = `data/${area}/${parts[0]}.json`;
+        const keyPath = [
+            area,
+            ...parts
+        ];
+        return {
+            filePath: file,
+            keyPath
+        };
+    }
+    _getByKeyPath(obj, pathArr) {
+        if (!pathArr || pathArr.length === 0) return obj;
+        return pathArr.reduce((acc, k)=>acc && acc[k] != null ? acc[k] : null, obj);
+    }
+    _areaFromFilePath(filePath) {
+        // e.g., data/javascript/classes.json -> 'javascript'
+        const m = filePath.match(/^data\/(\w+)\//);
+        return m ? m[1] : "";
+    }
+    _normalizeFromBCD(entry, keyPath) {
+        const compat = entry.__compat || {};
+        const support = compat.support || {};
+        const mdnUrl = compat.mdn_url || "";
+        const simple = (s)=>(Array.isArray(s) ? s[0] : s) || {};
+        const impl = {
+            chrome: this._implFromBCD(simple(support.chrome)),
+            edge: this._implFromBCD(simple(support.edge)),
+            firefox: this._implFromBCD(simple(support.firefox)),
+            safari: this._implFromBCD(simple(support.safari))
+        };
+        // Baseline heuristics from BCD: if all four have version_added and no flags, treat as widely
+        const statuses = Object.values(impl).map((v)=>v.status);
+        let baseline = "no_data";
+        if (statuses.every((s)=>s === "available")) baseline = "widely";
+        else if (statuses.some((s)=>s === "available")) baseline = "limited";
+        // Latest date is not available in BCD; leave empty
+        return {
+            feature_id: keyPath[keyPath.length - 1] || "",
+            name: keyPath.join("."),
+            baseline: {
+                status: baseline
+            },
+            browser_implementations: impl,
+            learn_more_url: mdnUrl
+        };
+    }
+    _implFromBCD(s) {
+        if (!s) return {
+            status: "unavailable"
+        };
+        const added = s.version_added;
+        const flags = s.flags || s.partial_implementation;
+        const status = added && !flags ? "available" : "unavailable";
+        return {
+            status
+        };
+    }
+}
+customElements.define("baseline-status", BaselineStatus);
+
+},{"bundle-text:./baseline-status.css":"blp6r","./baseline-status.constants.js":"cxNiv","./baseline-status.utils.js":"61ORP","@parcel/transformer-js/src/esmodule-helpers.js":"2qhxn"}],"blp6r":[function(require,module,exports,__globalThis) {
+module.exports = "baseline-status {\n  --baseline-status-color-limited: light-dark(#ea8600, #f09418);\n  --baseline-status-color-newly: light-dark(#1a73e8, #4185ff);\n  --baseline-status-color-widely: light-dark(#1e8e3e, #24a446);\n  --baseline-status-color-no_data: light-dark(#707070, #868686);\n  --baseline-status-color-outline: light-dark(#d9d9d9, #d9d9d9);\n  --baseline-status-color-link: light-dark(#1a73e8, #5aa1ff);\n  border: 1px solid var(--baseline-status-color-outline);\n  inline-size: 50rem;\n  color: inherit;\n  border-radius: .8rem;\n  margin: 2rem auto;\n  font: 2rem / 1.5 system-ui, -apple-system, Segoe UI, Roboto, sans-serif;\n  display: block;\n\n  & details {\n    & > summary {\n      cursor: pointer;\n      flex-flow: column;\n      place-content: space-between;\n      place-items: center;\n      gap: 1.6rem;\n      padding: 1.2rem 2.4rem;\n      display: flex;\n\n      & .name {\n        font-weight: 600;\n      }\n\n      & .summary-top {\n        flex-flow: column;\n        place-content: center;\n        place-items: center;\n        gap: 0;\n        display: flex;\n\n        & p {\n          margin: 0 !important;\n        }\n      }\n\n      & .summary-bottom {\n        align-items: center;\n        gap: 12px;\n        display: flex;\n      }\n\n      &::-webkit-details-marker {\n        display: none;\n      }\n    }\n\n    & .open-icon {\n      width: 10px;\n      height: 20px;\n      color: inherit;\n      place-content: center;\n      place-items: center;\n      display: flex;\n\n      & svg {\n        transition: transform .3s;\n      }\n    }\n\n    &[open] {\n      padding-block-end: 1.6rem;\n\n      & .open-icon svg {\n        transform: rotate(180deg);\n      }\n    }\n  }\n\n  & a {\n    color: var(--baseline-status-color-link);\n  }\n\n  & .baseline-status-title {\n    flex: 1;\n    place-content: space-between;\n    place-items: center;\n    gap: 2.5rem;\n    display: flex;\n\n    & div:first-child {\n      align-items: center;\n      gap: .5rem;\n      display: flex;\n    }\n  }\n\n  & .baseline-badge {\n    color: #fff;\n    text-transform: uppercase;\n    white-space: nowrap;\n    background: #3367d6;\n    border-radius: 2px;\n    margin-inline: .5rem;\n    padding: 0 4px;\n    font-size: 11px;\n    line-height: 20px;\n  }\n\n  & .baseline-status-browsers {\n    align-items: center;\n    gap: 12px;\n    max-width: 240px;\n    font-size: 0;\n    display: flex;\n\n    & .browser-icon {\n      vertical-align: top;\n      width: 21px;\n      height: 21px;\n      margin-bottom: -1px;\n      margin-right: -2px;\n      display: inline-block;\n    }\n  }\n\n  & .support-no_data {\n    color: var(--baseline-status-color-no_data);\n  }\n\n  & .support-unavailable {\n    color: var(--baseline-status-color-limited);\n  }\n\n  & .support-newly {\n    color: var(--baseline-status-color-newly);\n  }\n\n  & .support-widely, & .support-available {\n    color: var(--baseline-status-color-widely);\n  }\n}\n";
+
+},{}],"cxNiv":[function(require,module,exports,__globalThis) {
+// Centralized constants and asset imports for the Baseline Status component
+// Assets are imported as text using Parcel's bundle-text: pipeline
+// Support state icons
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "API_PROVIDER_DEFAULT", ()=>// endpoints and copy
+    API_PROVIDER_DEFAULT);
+parcelHelpers.export(exports, "API_ENDPOINT_WEBSTATUS", ()=>API_ENDPOINT_WEBSTATUS);
+parcelHelpers.export(exports, "API_ENDPOINT_MDN_CDN", ()=>API_ENDPOINT_MDN_CDN);
+parcelHelpers.export(exports, "BASELINE_DEFS", ()=>BASELINE_DEFS);
+parcelHelpers.export(exports, "SUPPORT_ICONS", ()=>// icon maps
+    SUPPORT_ICONS);
+parcelHelpers.export(exports, "BROWSER_ICONS", ()=>BROWSER_ICONS);
+parcelHelpers.export(exports, "GLYPH_BASELINE_LIMITED", ()=>// glyphs and UI icons
+    (0, _baselineLimitedSvgDefault.default));
+parcelHelpers.export(exports, "GLYPH_BASELINE_NEWLY", ()=>(0, _baselineNewlySvgDefault.default));
+parcelHelpers.export(exports, "GLYPH_BASELINE_WIDELY", ()=>(0, _baselineWidelySvgDefault.default));
+parcelHelpers.export(exports, "GLYPH_BASELINE_NO_DATA", ()=>(0, _baselineNoDataSvgDefault.default));
+parcelHelpers.export(exports, "ICON_CHEVRON", ()=>(0, _chevronSvgDefault.default));
+parcelHelpers.export(exports, "TPL_LOADING", ()=>// templates
+    (0, _loadingHtmlDefault.default));
+parcelHelpers.export(exports, "TPL_MAIN", ()=>(0, _mainHtmlDefault.default));
+var _supportAvailableSvg = require("bundle-text:./icons/support-available.svg");
+var _supportAvailableSvgDefault = parcelHelpers.interopDefault(_supportAvailableSvg);
+var _supportUnavailableSvg = require("bundle-text:./icons/support-unavailable.svg");
+var _supportUnavailableSvgDefault = parcelHelpers.interopDefault(_supportUnavailableSvg);
+var _supportNoDataSvg = require("bundle-text:./icons/support-no_data.svg");
+var _supportNoDataSvgDefault = parcelHelpers.interopDefault(_supportNoDataSvg);
+// Browser icons
+var _browserChromeSvg = require("bundle-text:./icons/browser-chrome.svg");
+var _browserChromeSvgDefault = parcelHelpers.interopDefault(_browserChromeSvg);
+var _browserEdgeSvg = require("bundle-text:./icons/browser-edge.svg");
+var _browserEdgeSvgDefault = parcelHelpers.interopDefault(_browserEdgeSvg);
+var _browserFirefoxSvg = require("bundle-text:./icons/browser-firefox.svg");
+var _browserFirefoxSvgDefault = parcelHelpers.interopDefault(_browserFirefoxSvg);
+var _browserSafariSvg = require("bundle-text:./icons/browser-safari.svg");
+var _browserSafariSvgDefault = parcelHelpers.interopDefault(_browserSafariSvg);
+// Baseline glyphs and UI icons
+var _baselineLimitedSvg = require("bundle-text:./icons/baseline-limited.svg");
+var _baselineLimitedSvgDefault = parcelHelpers.interopDefault(_baselineLimitedSvg);
+var _baselineNewlySvg = require("bundle-text:./icons/baseline-newly.svg");
+var _baselineNewlySvgDefault = parcelHelpers.interopDefault(_baselineNewlySvg);
+var _baselineWidelySvg = require("bundle-text:./icons/baseline-widely.svg");
+var _baselineWidelySvgDefault = parcelHelpers.interopDefault(_baselineWidelySvg);
+var _baselineNoDataSvg = require("bundle-text:./icons/baseline-no_data.svg");
+var _baselineNoDataSvgDefault = parcelHelpers.interopDefault(_baselineNoDataSvg);
+var _chevronSvg = require("bundle-text:./icons/chevron.svg");
+var _chevronSvgDefault = parcelHelpers.interopDefault(_chevronSvg);
+// HTML templates
+var _loadingHtml = require("bundle-text:./templates/loading.html");
+var _loadingHtmlDefault = parcelHelpers.interopDefault(_loadingHtml);
+var _mainHtml = require("bundle-text:./templates/main.html");
+var _mainHtmlDefault = parcelHelpers.interopDefault(_mainHtml);
+// API endpoints and providers
+const API_PROVIDER_DEFAULT = "auto"; // auto: try webstatus then mdn (if configured)
+const API_ENDPOINT_WEBSTATUS = "https://api.webstatus.dev/v1/features/";
+// MDN Browser Compat Data via CDN: expects a file path like "data/javascript/classes.json"
+const API_ENDPOINT_MDN_CDN = "https://cdn.jsdelivr.net/npm/mdn-browser-compat-data@latest/";
+// Baseline text definitions
+const BASELINE_DEFS = {
+    limited: {
+        title: "Limited availability",
+        defaultDescription: "This feature is not Baseline because it does not work in some of the most widely used browsers."
+    },
+    newly: {
+        title: "Newly available",
+        defaultDescription: "This feature works across the latest devices and browser versions. This feature might not work in older devices or browsers."
+    },
+    widely: {
+        title: "Widely available",
+        defaultDescription: "This feature is well established and works across many devices and browser versions."
+    },
+    loading: {
+        title: "Loading",
+        defaultDescription: ""
+    },
+    no_data: {
+        title: "Unknown availability",
+        defaultDescription: "We currently do not have browser support information about this feature."
+    }
 };
+// Mappings used by the component
+const SUPPORT_ICONS = {
+    available: (0, _supportAvailableSvgDefault.default),
+    unavailable: (0, _supportUnavailableSvgDefault.default),
+    no_data: (0, _supportNoDataSvgDefault.default)
+};
+const BROWSER_ICONS = {
+    chrome: (0, _browserChromeSvgDefault.default),
+    edge: (0, _browserEdgeSvgDefault.default),
+    firefox: (0, _browserFirefoxSvgDefault.default),
+    safari: (0, _browserSafariSvgDefault.default)
+};
+
+},{"bundle-text:./icons/support-available.svg":"kWdN4","bundle-text:./icons/support-unavailable.svg":"jVQjB","bundle-text:./icons/support-no_data.svg":"5CIQz","bundle-text:./icons/browser-chrome.svg":"jisqf","bundle-text:./icons/browser-edge.svg":"lUZhY","bundle-text:./icons/browser-firefox.svg":"hKD8r","bundle-text:./icons/browser-safari.svg":"58A5f","bundle-text:./icons/baseline-limited.svg":"dgtQn","bundle-text:./icons/baseline-newly.svg":"eifqO","bundle-text:./icons/baseline-widely.svg":"jIQTc","bundle-text:./icons/baseline-no_data.svg":"gxR52","bundle-text:./icons/chevron.svg":"1wUVT","bundle-text:./templates/loading.html":"dDKFp","bundle-text:./templates/main.html":"j2xQg","@parcel/transformer-js/src/esmodule-helpers.js":"2qhxn"}],"kWdN4":[function(require,module,exports,__globalThis) {
+module.exports = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"17\" height=\"21\" fill=\"none\"><path fill=\"currentColor\" d=\"M1.253 3.31a8.843 8.843 0 0 1 5.47-1.882c4.882 0 8.838 3.927 8.838 8.772 0 4.845-3.956 8.772-8.837 8.772a8.842 8.842 0 0 1-5.47-1.882c-.237.335-.49.657-.758.966a10.074 10.074 0 0 0 6.228 2.14c5.562 0 10.07-4.475 10.07-9.996 0-5.52-4.508-9.996-10.07-9.996-2.352 0-4.514.8-6.228 2.14.268.309.521.631.757.966Z\"/><path fill=\"currentColor\" d=\"M11.348 8.125 6.34 13.056l-3.006-2.954 1.002-.985 1.999 1.965 4.012-3.942 1.002.985Z\"/></svg>";
+
+},{}],"jVQjB":[function(require,module,exports,__globalThis) {
+module.exports = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"17\" height=\"21\" fill=\"none\"><path fill=\"currentColor\" d=\"M1.254 3.31a8.843 8.843 0 0 1 5.47-1.882c4.881 0 8.838 3.927 8.838 8.772 0 4.845-3.957 8.772-8.838 8.772a8.842 8.842 0 0 1-5.47-1.882c-.236.335-.49.657-.757.966a10.074 10.074 0 0 0 6.227 2.14c5.562 0 10.071-4.475 10.071-9.996 0-5.52-4.509-9.996-10.07-9.996-2.352 0-4.515.8-6.228 2.14.268.309.52.631.757.966Z\"/><path fill=\"currentColor\" d=\"m10.321 8.126-1.987 1.972 1.987 1.972-.993.986-1.987-1.972-1.987 1.972-.993-.986 1.986-1.972-1.986-1.972.993-.986 1.987 1.972L9.328 7.14l.993.986Z\"/></svg>";
+
+},{}],"5CIQz":[function(require,module,exports,__globalThis) {
+module.exports = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"17\" height=\"21\" viewBox=\"0 0 17 21\" fill=\"none\"><path d=\"M7.18169 12.2783H5.98706C5.99134 11.8703 6.02774 11.5367 6.09625 11.2775C6.16904 11.014 6.28679 10.7738 6.4495 10.5571C6.61221 10.3404 6.82844 10.0939 7.0982 9.8176C7.29516 9.61785 7.475 9.43085 7.63771 9.2566C7.8047 9.0781 7.93958 8.88685 8.04235 8.68285C8.14511 8.4746 8.19649 8.22598 8.19649 7.93698C8.19649 7.64373 8.14297 7.39085 8.03592 7.17835C7.93316 6.96585 7.77901 6.80223 7.57348 6.68748C7.37224 6.57273 7.12175 6.51535 6.82202 6.51535C6.57367 6.51535 6.33817 6.55998 6.11552 6.64923C5.89286 6.73848 5.71302 6.8766 5.576 7.0636C5.43898 7.24635 5.36833 7.48648 5.36405 7.78398H4.17584C4.18441 7.30373 4.3043 6.89148 4.53552 6.54723C4.77102 6.20298 5.08787 5.93948 5.48609 5.75673C5.8843 5.57398 6.32961 5.4826 6.82202 5.4826C7.36581 5.4826 7.82825 5.58035 8.20934 5.77585C8.5947 5.97135 8.88801 6.25185 9.08926 6.61735C9.2905 6.9786 9.39113 7.40785 9.39113 7.9051C9.39113 8.2876 9.31191 8.64035 9.15348 8.96335C8.99934 9.2821 8.80023 9.58173 8.55617 9.86222C8.3121 10.1427 8.05305 10.4105 7.77901 10.6655C7.54351 10.8822 7.38508 11.1266 7.30373 11.3986C7.22237 11.6706 7.18169 11.9639 7.18169 12.2783ZM5.93568 14.2992C5.93568 14.108 5.99562 13.9465 6.11552 13.8147C6.23541 13.683 6.40882 13.6171 6.63576 13.6171C6.86698 13.6171 7.04253 13.683 7.16243 13.8147C7.28232 13.9465 7.34226 14.108 7.34226 14.2992C7.34226 14.482 7.28232 14.6392 7.16243 14.771C7.04253 14.9027 6.86698 14.9686 6.63576 14.9686C6.40882 14.9686 6.23541 14.9027 6.11552 14.771C5.99562 14.6392 5.93568 14.482 5.93568 14.2992Z\" fill=\"currentColor\"/><path d=\"M1.25317 3.31021C2.75786 2.13162 4.65827 1.4281 6.72373 1.4281C11.6047 1.4281 15.5615 5.35546 15.5615 10.2001C15.5615 15.0447 11.6047 18.9721 6.72373 18.9721C4.65827 18.9721 2.75786 18.2686 1.25317 17.09C1.01715 17.425 0.764387 17.7475 0.496094 18.0563C2.20987 19.3966 4.37247 20.1961 6.72373 20.1961C12.2857 20.1961 16.7946 15.7207 16.7946 10.2001C16.7946 4.67946 12.2857 0.204102 6.72373 0.204102C4.37247 0.204102 2.20987 1.00363 0.496094 2.34391C0.764386 2.65272 1.01715 2.97522 1.25317 3.31021Z\" fill=\"currentColor\"/></svg>";
+
+},{}],"jisqf":[function(require,module,exports,__globalThis) {
+module.exports = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"21\" height=\"21\" viewBox=\"0 0 260 260\"><linearGradient id=\"a\" x1=\"145\" x2=\"34\" y1=\"253\" y2=\"61\" gradientUnits=\"userSpaceOnUse\"><stop offset=\"0\" stop-color=\"#1e8e3e\"/><stop offset=\"1\" stop-color=\"#34a853\"/></linearGradient><linearGradient id=\"b\" x1=\"111\" x2=\"222\" y1=\"254\" y2=\"62\" gradientUnits=\"userSpaceOnUse\"><stop offset=\"0\" stop-color=\"#fcc934\"/><stop offset=\"1\" stop-color=\"#fbbc04\"/></linearGradient><linearGradient id=\"c\" x1=\"17\" x2=\"239\" y1=\"80\" y2=\"80\" gradientUnits=\"userSpaceOnUse\"><stop offset=\"0\" stop-color=\"#d93025\"/><stop offset=\"1\" stop-color=\"#ea4335\"/></linearGradient><circle cx=\"128\" cy=\"128\" r=\"64\" fill=\"#fff\"/><path fill=\"url(#a)\" d=\"M96 183.4A63.7 63.7 0 0 1 72.6 160L17.2 64A128 128 0 0 0 128 256l55.4-96A64 64 0 0 1 96 183.4Z\"/><path fill=\"url(#b)\" d=\"M192 128a63.7 63.7 0 0 1-8.6 32L128 256A128 128 0 0 0 238.9 64h-111a64 64 0 0 1 64 64Z\"/><circle cx=\"128\" cy=\"128\" r=\"52\" fill=\"#1a73e8\"/><path fill=\"url(#c)\" d=\"M96 72.6a63.7 63.7 0 0 1 32-8.6h110.8a128 128 0 0 0-221.7 0l55.5 96A64 64 0 0 1 96 72.6Z\"/></svg>";
+
+},{}],"lUZhY":[function(require,module,exports,__globalThis) {
+module.exports = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"21\" height=\"21\" fill=\"none\"><defs><radialGradient id=\"e\" cx=\"0\" cy=\"0\" r=\"1\" gradientTransform=\"rotate(-81.384 12.03 4.657) scale(11.4261 9.23112)\" gradientUnits=\"userSpaceOnUse\"><stop offset=\".8\" stop-opacity=\"0\"/><stop offset=\".9\" stop-opacity=\".5\"/><stop offset=\"1\"/></radialGradient><radialGradient id=\"f\" cx=\"0\" cy=\"0\" r=\"1\" gradientTransform=\"rotate(92.291 -.78 2.876) scale(16.1416 34.3784)\" gradientUnits=\"userSpaceOnUse\"><stop stop-color=\"#35C1F1\"/><stop offset=\".1\" stop-color=\"#34C1ED\"/><stop offset=\".2\" stop-color=\"#2FC2DF\"/><stop offset=\".3\" stop-color=\"#2BC3D2\"/><stop offset=\".7\" stop-color=\"#36C752\"/></radialGradient><radialGradient id=\"g\" cx=\"0\" cy=\"0\" r=\"1\" gradientTransform=\"matrix(2.171 7.44345 -6.05301 1.76546 19.13 6.16)\" gradientUnits=\"userSpaceOnUse\"><stop stop-color=\"#66EB6E\"/><stop offset=\"1\" stop-color=\"#66EB6E\" stop-opacity=\"0\"/></radialGradient><linearGradient id=\"q\" x1=\"4.678\" x2=\"18.894\" y1=\"14.105\" y2=\"14.105\" gradientUnits=\"userSpaceOnUse\"><stop offset=\"0\" stop-color=\"#0C59A4\"/><stop offset=\"1\" stop-color=\"#114A8B\"/></linearGradient><linearGradient id=\"d\" x1=\"12.168\" x2=\"3.299\" y1=\"7.937\" y2=\"17.603\" gradientUnits=\"userSpaceOnUse\"><stop stop-color=\"#1B9DE2\"/><stop offset=\".2\" stop-color=\"#1595DF\"/><stop offset=\".7\" stop-color=\"#0680D7\"/><stop offset=\"1\" stop-color=\"#0078D4\"/></linearGradient><clipPath id=\"a\"><path fill=\"#fff\" d=\"M0 0h20.4v20.4H0z\"/></clipPath></defs><g clip-path=\"url(#a)\"><path fill=\"url(#q)\" d=\"M18.416 15.18a7.485 7.485 0 0 1-.845.375 8.121 8.121 0 0 1-2.86.51c-3.77 0-7.053-2.59-7.053-5.92a2.51 2.51 0 0 1 1.307-2.176c-3.41.143-4.287 3.697-4.287 5.777 0 5.897 5.427 6.487 6.598 6.487.63 0 1.578-.184 2.152-.367l.103-.032a10.224 10.224 0 0 0 5.307-4.207.319.319 0 0 0-.422-.447Z\"/><path fill=\"url(#d)\" d=\"M8.423 19.229a6.31 6.31 0 0 1-1.809-1.698A6.43 6.43 0 0 1 8.965 7.97c.255-.12.677-.327 1.243-.319a2.582 2.582 0 0 1 2.048 1.036c.32.431.497.953.502 1.49 0-.016 1.953-6.343-6.375-6.343-3.498 0-6.375 3.315-6.375 6.232-.014 1.54.316 3.065.964 4.462a10.2 10.2 0 0 0 12.464 5.34 6.015 6.015 0 0 1-5.005-.638h-.008Z\"/><path fill=\"url(#e)\" d=\"M8.423 19.229a6.31 6.31 0 0 1-1.809-1.698A6.43 6.43 0 0 1 8.965 7.97c.255-.12.677-.327 1.243-.319a2.582 2.582 0 0 1 2.048 1.036c.32.431.497.953.502 1.49 0-.016 1.953-6.343-6.375-6.343-3.498 0-6.375 3.315-6.375 6.232-.014 1.54.316 3.065.964 4.462a10.2 10.2 0 0 0 12.464 5.34 6.015 6.015 0 0 1-5.005-.638h-.008Z\" opacity=\".41\"/><path fill=\"url(#f)\" d=\"M12.145 11.857c-.072.08-.271.2-.271.447 0 .207.135.414.382.582 1.14.796 3.3.685 3.307.685a4.75 4.75 0 0 0 2.415-.662A4.893 4.893 0 0 0 20.4 8.694c.024-1.785-.637-2.972-.9-3.498C17.802 1.896 14.16 0 10.2 0A10.2 10.2 0 0 0 0 10.057c.04-2.909 2.933-5.26 6.375-5.26.28 0 1.873.024 3.347.797a5.786 5.786 0 0 1 2.463 2.335c.486.845.573 1.92.573 2.35 0 .431-.215 1.06-.621 1.587l.008-.008Z\"/><path fill=\"url(#g)\" d=\"M12.145 11.857c-.072.08-.271.2-.271.447 0 .207.135.414.382.582 1.14.796 3.3.685 3.307.685a4.75 4.75 0 0 0 2.415-.662A4.893 4.893 0 0 0 20.4 8.694c.024-1.785-.637-2.972-.9-3.498C17.802 1.896 14.16 0 10.2 0A10.2 10.2 0 0 0 0 10.057c.04-2.909 2.933-5.26 6.375-5.26.28 0 1.873.024 3.347.797a5.786 5.786 0 0 1 2.463 2.335c.486.845.573 1.92.573 2.35 0 .431-.215 1.06-.621 1.587l.008-.008Z\"/></g></svg>";
+
+},{}],"hKD8r":[function(require,module,exports,__globalThis) {
+module.exports = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"21\" height=\"21\" fill=\"none\"><g clip-path=\"url(#M)\"><path d=\"M19.661 6.85c-.444-1.034-1.344-2.15-2.049-2.503.503.942.851 1.955 1.034 3l.002.017c-1.155-2.786-3.112-3.911-4.711-6.358l-.241-.379-.113-.204a1.76 1.76 0 0 1-.152-.392c-.011-.022-.017-.025-.023-.026-.021 0-.023.002-.024.003l-.003-.003C10.816 1.46 9.945 4.152 9.866 5.499c-1.025.068-2.004.434-2.811 1.049a3.05 3.05 0 0 0-.263-.193c-.233-.789-.243-1.623-.029-2.417-.942.442-1.779 1.068-2.458 1.84H4.3c-.405-.497-.376-2.135-.353-2.477-.12.047-.234.105-.341.175-.357.247-.691.524-.998.828-.35.343-.669.714-.955 1.109v.002-.002a8.22 8.22 0 0 0-1.37 2.995l-.014.065c-.019.087-.089.523-.1.617 0 .007-.002.014-.002.022A9.14 9.14 0 0 0 0 10.475v.051c.005 2.474.967 4.857 2.697 6.678s4.103 2.948 6.649 3.158a10.45 10.45 0 0 0 7.105-2.023c2.023-1.511 3.388-3.702 3.825-6.14l.046-.383c.21-1.683-.017-3.391-.662-4.967l.001.002zm-11.77 7.741l.141.067.007.004-.149-.072zm10.758-7.224v-.009l.002.01-.002-.001z\" fill=\"url(#A)\"/><use href=\"#N\" fill=\"url(#B)\"/><use href=\"#N\" fill=\"url(#C)\"/><path d=\"M14.697 8.011l.064.045c-.257-.44-.576-.844-.949-1.198C10.637 3.784 12.98.194 13.375.01l.004-.006c-2.565 1.454-3.436 4.146-3.515 5.493l.359-.018c.91.002 1.803.237 2.589.681a5.07 5.07 0 0 1 1.885 1.849v.001z\" fill=\"url(#D)\"/><use href=\"#O\" fill=\"url(#E)\"/><use href=\"#O\" fill=\"url(#F)\"/><path d=\"M6.576 6.22l.211.135c-.233-.789-.243-1.623-.029-2.417-.942.442-1.779 1.068-2.458 1.84.05-.001 1.531-.027 2.276.442z\" fill=\"url(#G)\"/><path d=\"M.093 10.761c.788 4.508 5.009 7.952 9.799 8.083 4.434.121 7.267-2.371 8.437-4.802.991-2.102 1.105-4.493.318-6.674v-.009l.002.007c.362 2.29-.841 4.508-2.722 6.011l-.006.013c-3.665 2.891-7.172 1.744-7.881 1.276l-.149-.072c-2.137-.989-3.02-2.873-2.83-4.49-.507.007-1.006-.128-1.435-.39s-.771-.638-.984-1.084c.561-.333 1.2-.521 1.858-.546a3.96 3.96 0 0 1 1.897.4 5.24 5.24 0 0 0 3.834.146c-.004-.08-1.781-.765-2.474-1.426-.37-.353-.546-.524-.702-.651-.084-.069-.172-.134-.263-.193l-.211-.135c-.745-.469-2.226-.443-2.275-.442h-.005c-.405-.497-.376-2.135-.353-2.477-.12.047-.234.105-.341.175-.357.247-.691.524-.998.828-.351.342-.672.712-.959 1.107A8.22 8.22 0 0 0 .28 8.409c-.005.02-.368 1.556-.189 2.353h.002z\" fill=\"url(#H)\"/><path d=\"M13.812 6.858c.373.355.692.758.948 1.199l.153.121c2.315 2.067 1.102 4.988 1.012 5.195 1.881-1.5 3.083-3.72 2.722-6.011-1.155-2.789-3.114-3.914-4.711-6.361l-.241-.379-.113-.204a1.76 1.76 0 0 1-.152-.392c-.011-.022-.017-.025-.023-.026-.021 0-.023.002-.024.003-.402.185-2.745 3.777.43 6.849l-.001.004z\" fill=\"url(#I)\"/><path d=\"M14.913 8.179c-.045-.04-.097-.08-.153-.121l-.063-.045c-.718-.482-1.596-.688-2.462-.579 3.673 1.778 2.688 7.902-2.403 7.672-.453-.018-.901-.102-1.329-.248l-.3-.119-.172-.08.007.004c.71.469 4.216 1.616 7.881-1.276l.006-.013c.091-.207 1.305-3.128-1.012-5.195l.001-.001z\" fill=\"url(#J)\"/><path d=\"M5.625 11.419S6.096 9.718 9 9.718c.314 0 1.212-.848 1.228-1.094a5.24 5.24 0 0 1-3.834-.146 3.96 3.96 0 0 0-1.897-.4c-.657.026-1.297.214-1.858.546.213.446.555.822.984 1.084s.928.397 1.435.39c-.189 1.617.694 3.5 2.83 4.49l.141.067c-1.247-.624-2.277-1.804-2.405-3.235v-.001z\" fill=\"url(#K)\"/><path d=\"M19.661 6.845c-.444-1.034-1.344-2.15-2.049-2.503a10.05 10.05 0 0 1 1.034 3l.002.017c-1.155-2.786-3.112-3.911-4.711-6.358l-.241-.379-.112-.204c-.066-.124-.117-.256-.152-.392-.011-.022-.017-.025-.023-.026-.02 0-.023.002-.024.003l-.003-.003c-2.565 1.454-3.436 4.146-3.515 5.493l.359-.018c.91.002 1.803.237 2.589.681a5.07 5.07 0 0 1 1.885 1.849c-.718-.482-1.596-.688-2.462-.579 3.673 1.778 2.688 7.902-2.403 7.672-.453-.018-.901-.102-1.329-.248l-.3-.119-.172-.08.007.004-.149-.072.141.067c-1.247-.624-2.277-1.804-2.405-3.235 0 0 .471-1.701 3.375-1.701.314 0 1.212-.848 1.228-1.094-.004-.08-1.781-.765-2.474-1.426l-.702-.651a3.05 3.05 0 0 0-.263-.193c-.233-.789-.243-1.623-.029-2.417-.942.442-1.779 1.068-2.458 1.84H4.3c-.405-.497-.376-2.135-.353-2.477-.12.047-.234.105-.341.175-.357.247-.691.524-.998.828-.35.343-.669.714-.955 1.109a8.22 8.22 0 0 0-1.37 2.995l-.014.065-.118.624A11.15 11.15 0 0 0 0 10.473v.051c.005 2.474.967 4.857 2.697 6.678S6.8 20.15 9.347 20.36a10.45 10.45 0 0 0 7.105-2.023c2.023-1.511 3.388-3.702 3.825-6.14l.046-.383c.21-1.683-.017-3.391-.662-4.967l-.001-.001z\" fill=\"url(#L)\"/></g><defs><linearGradient id=\"A\" x1=\"18.309\" y1=\"3.165\" x2=\"1.883\" y2=\"19.533\"><stop offset=\".048\" stop-color=\"#fff44f\"/><stop offset=\".111\" stop-color=\"#ffe847\"/><stop offset=\".225\" stop-color=\"#ffc830\"/><stop offset=\".368\" stop-color=\"#ff980e\"/><stop offset=\".401\" stop-color=\"#ff8b16\"/><stop offset=\".462\" stop-color=\"#ff672a\"/><stop offset=\".534\" stop-color=\"#ff3647\"/><stop offset=\".705\" stop-color=\"#e31587\"/></linearGradient><radialGradient id=\"B\" cx=\"0\" cy=\"0\" r=\"1\" gradientTransform=\"translate(17.6533 2.30078) scale(21.2899 20.6149)\"><stop offset=\".129\" stop-color=\"#ffbd4f\"/><stop offset=\".186\" stop-color=\"#ffac31\"/><stop offset=\".247\" stop-color=\"#ff9d17\"/><stop offset=\".283\" stop-color=\"#ff980e\"/><stop offset=\".403\" stop-color=\"#ff563b\"/><stop offset=\".467\" stop-color=\"#ff3750\"/><stop offset=\".71\" stop-color=\"#f5156c\"/><stop offset=\".782\" stop-color=\"#eb0878\"/><stop offset=\".86\" stop-color=\"#e50080\"/></radialGradient><radialGradient id=\"C\" cx=\"0\" cy=\"0\" r=\"1\" gradientTransform=\"matrix(21.2899,0,0,20.6149,9.74862,10.7203)\"><stop offset=\".3\" stop-color=\"#960e18\"/><stop offset=\".351\" stop-color=\"#b11927\" stop-opacity=\".74\"/><stop offset=\".435\" stop-color=\"#db293d\" stop-opacity=\".343\"/><stop offset=\".497\" stop-color=\"#f5334b\" stop-opacity=\".094\"/><stop offset=\".53\" stop-color=\"#ff3750\" stop-opacity=\"0\"/></radialGradient><radialGradient id=\"D\" cx=\"0\" cy=\"0\" r=\"1\" gradientTransform=\"translate(12.3835 -2.29164) scale(15.422 14.9331)\"><stop offset=\".132\" stop-color=\"#fff44f\"/><stop offset=\".252\" stop-color=\"#ffdc3e\"/><stop offset=\".506\" stop-color=\"#ff9d12\"/><stop offset=\".526\" stop-color=\"#ff980e\"/></radialGradient><radialGradient id=\"E\" cx=\"0\" cy=\"0\" r=\"1\" gradientTransform=\"translate(7.37722 16.0781) scale(10.1364 9.81506)\"><stop offset=\".353\" stop-color=\"#3a8ee6\"/><stop offset=\".472\" stop-color=\"#5c79f0\"/><stop offset=\".669\" stop-color=\"#9059ff\"/><stop offset=\"1\" stop-color=\"#c139e6\"/></radialGradient><radialGradient id=\"F\" cx=\"0\" cy=\"0\" r=\"1\" gradientTransform=\"matrix(5.22,-1.22,1.39,5.94,10.78,8.95)\"><stop offset=\".206\" stop-color=\"#9059ff\" stop-opacity=\"0\"/><stop offset=\".278\" stop-color=\"#8c4ff3\" stop-opacity=\".064\"/><stop offset=\".747\" stop-color=\"#7716a8\" stop-opacity=\".45\"/><stop offset=\".975\" stop-color=\"#6e008b\" stop-opacity=\".6\"/></radialGradient><radialGradient id=\"G\" cx=\"0\" cy=\"0\" r=\"1\" gradientTransform=\"translate(9.485 1.535) scale(7.293 7.062)\"><stop stop-color=\"#ffe226\"/><stop offset=\".121\" stop-color=\"#ffdb27\"/><stop offset=\".295\" stop-color=\"#ffc82a\"/><stop offset=\".502\" stop-color=\"#ffa930\"/><stop offset=\".732\" stop-color=\"#ff7e37\"/><stop offset=\".792\" stop-color=\"#ff7139\"/></radialGradient><radialGradient id=\"H\" cx=\"0\" cy=\"0\" r=\"1\" gradientTransform=\"translate(15.282 -3.057) scale(31.118 30.132)\"><stop offset=\".113\" stop-color=\"#fff44f\"/><stop offset=\".456\" stop-color=\"#ff980e\"/><stop offset=\".622\" stop-color=\"#ff5634\"/><stop offset=\".716\" stop-color=\"#ff3647\"/><stop offset=\".904\" stop-color=\"#e31587\"/></radialGradient><radialGradient id=\"I\" cx=\"0\" cy=\"0\" r=\"1\" gradientTransform=\"translate(12.695 -1.386) rotate(83.78) scale(22.089 14.96)\"><stop stop-color=\"#fff44f\"/><stop offset=\".06\" stop-color=\"#ffe847\"/><stop offset=\".168\" stop-color=\"#ffc830\"/><stop offset=\".304\" stop-color=\"#ff980e\"/><stop offset=\".356\" stop-color=\"#ff8b16\"/><stop offset=\".455\" stop-color=\"#ff672a\"/><stop offset=\".57\" stop-color=\"#ff3647\"/><stop offset=\".737\" stop-color=\"#e31587\"/></radialGradient><radialGradient id=\"J\" cx=\"0\" cy=\"0\" r=\"1\" gradientTransform=\"translate(9.485 4.087) scale(19.424 18.809)\"><stop offset=\".137\" stop-color=\"#fff44f\"/><stop offset=\".48\" stop-color=\"#ff980e\"/><stop offset=\".592\" stop-color=\"#ff5634\"/><stop offset=\".655\" stop-color=\"#ff3647\"/><stop offset=\".904\" stop-color=\"#e31587\"/></radialGradient><radialGradient id=\"K\" cx=\"0\" cy=\"0\" r=\"1\" gradientTransform=\"translate(14.491 5.107) scale(21.261 20.587)\"><stop offset=\".094\" stop-color=\"#fff44f\"/><stop offset=\".231\" stop-color=\"#ffe141\"/><stop offset=\".509\" stop-color=\"#ffaf1e\"/><stop offset=\".626\" stop-color=\"#ff980e\"/></radialGradient><linearGradient id=\"L\" x1=\"18.103\" y1=\"3.076\" x2=\"4.144\" y2=\"17.494\"><stop offset=\".167\" stop-color=\"#fff44f\" stop-opacity=\".8\"/><stop offset=\".266\" stop-color=\"#fff44f\" stop-opacity=\".634\"/><stop offset=\".489\" stop-color=\"#fff44f\" stop-opacity=\".217\"/><stop offset=\".6\" stop-color=\"#fff44f\" stop-opacity=\"0\"/></linearGradient><clipPath id=\"M\"><path fill=\"#fff\" d=\"M0 0h20.4v20.4H0z\"/></clipPath><path id=\"N\" d=\"M19.661 6.85c-.444-1.034-1.344-2.15-2.049-2.503.503.942.851 1.955 1.034 3v.009l.002.01c.787 2.181.673 4.573-.318 6.674-1.17 2.432-4.002 4.924-8.437 4.802-4.79-.131-9.011-3.574-9.799-8.083-.144-.711 0-1.072.072-1.649-.098.449-.153.906-.164 1.364v.051c.005 2.474.967 4.857 2.697 6.678s4.103 2.948 6.649 3.158a10.45 10.45 0 0 0 7.105-2.023c2.023-1.511 3.388-3.702 3.825-6.14l.046-.383c.21-1.684-.017-3.391-.663-4.968l-.001.001z\"/><path id=\"O\" d=\"M10.228 8.626C10.211 8.872 9.314 9.72 9 9.72c-2.904 0-3.375 1.701-3.375 1.701.129 1.432 1.159 2.613 2.405 3.235l.172.08.3.119c.428.146.876.23 1.329.248 5.091.231 6.076-5.894 2.403-7.672.867-.109 1.744.097 2.462.579-.449-.767-1.099-1.405-1.885-1.849s-1.679-.679-2.589-.681l-.359.018c-1.025.068-2.004.434-2.811 1.049.156.128.331.298.702.651.693.661 2.47 1.346 2.474 1.426v.002z\"/></defs></svg>";
+
+},{}],"58A5f":[function(require,module,exports,__globalThis) {
+module.exports = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"21\" height=\"21\" viewBox=\"0 0 21 21\" fill=\"none\"><g clip-path=\"url(#clip0)\"><path opacity=\".53\" d=\"M19.505 10.524a9.3 9.3 0 0 1-2.725 6.37 9.21 9.21 0 0 1-6.579 2.639 9.21 9.21 0 0 1-6.579-2.639 9.3 9.3 0 0 1-2.725-6.37c0-5.39 4.383-9.76 9.304-9.76 5.02 0 9.304 4.37 9.304 9.76Z\" fill=\"#000\"/><path d=\"M19.859 9.729c0 1.275-.25 2.538-.736 3.716a9.576 9.576 0 0 1-2.093 3.151 9.317 9.317 0 0 1-6.83 2.745c-2.562 0-5.018-1.023-6.829-2.844C1.56 14.675.542 12.205.542 9.63S1.56 4.585 3.371 2.764C5.182.943 7.639-.08 10.2-.08c1.269 0 2.524.25 3.696.738 1.171.487 2.236 1.203 3.132 2.104.897.902 1.608 1.973 2.093 3.151.486 1.178.736 2.441.736 3.716Z\" fill=\"url(#paint0)\" stroke=\"#CDCDCD\" stroke-width=\".352\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M19.102 9.729c0 2.374-.938 4.65-2.607 6.329-1.67 1.678-3.934 2.621-6.295 2.621-2.36 0-4.624-.943-6.293-2.621C2.238 14.38 1.3 12.103 1.3 9.73c0-2.374.938-4.651 2.607-6.33 1.669-1.678 3.933-2.62 6.294-2.62 2.361 0 4.625.942 6.294 2.62 1.67 1.679 2.607 3.956 2.607 6.33Z\" fill=\"url(#paint1)\"/><g opacity=\".409\" filter=\"url(#f0)\"><path d=\"m16.283 4.509-7.1 4.148-4.489 7.106 6.568-4.891 5.022-6.363Z\" fill=\"#000\"/></g><path d=\"M11.218 10.8 9.183 8.657 16.402 3.774 11.218 10.8Z\" fill=\"#FF5150\"/><path d=\"m11.218 10.8-2.035-2.143-5.184 7.026 7.219-4.883Z\" fill=\"#F1F1F1\"/><path opacity=\".243\" d=\"M4 15.684 11.218 10.8l5.184-7.026L4 15.684Z\" fill=\"#000\"/></g><defs><filter id=\"f0\" x=\"2.149\" y=\"1.964\" width=\"16.679\" height=\"16.344\" filterUnits=\"userSpaceOnUse\" color-interpolation-filters=\"sRGB\"><feFlood flood-opacity=\"0\"/><feBlend in=\"SourceGraphic\"/><feGaussianBlur stdDeviation=\"1.272\"/></filter><linearGradient id=\"paint0\" x1=\"10.2\" y1=\"19.44\" x2=\"10.2\" y2=\".018\" gradientUnits=\"userSpaceOnUse\"><stop stop-color=\"#BDBDBD\"/><stop offset=\"1\" stop-color=\"#fff\"/></linearGradient><radialGradient id=\"paint1\" cx=\"0\" cy=\"0\" r=\"1\" gradientUnits=\"userSpaceOnUse\" gradientTransform=\"translate(10.241 8.424) scale(9.658 9.711)\"><stop stop-color=\"#06C2E7\"/><stop offset=\".25\" stop-color=\"#0DB8EC\"/><stop offset=\".5\" stop-color=\"#12AEF1\"/><stop offset=\".75\" stop-color=\"#1F86F9\"/><stop offset=\"1\" stop-color=\"#107DDD\"/></radialGradient><clipPath id=\"clip0\"><rect width=\"20.4\" height=\"20.4\" fill=\"#fff\"/></clipPath></defs></svg>";
+
+},{}],"dgtQn":[function(require,module,exports,__globalThis) {
+module.exports = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"36\" height=\"20\" viewBox=\"0 0 540 300\" aria-hidden=\"true\">\n  <path d=\"M150 0L240 90L210 120L120 30L150 0Z\" fill=\"var(--baseline-icon-limited-front, #F09409)\"/>\n  <path d=\"M420 30L540 150L420 270L390 240L480 150L390 60L420 30Z\" fill=\"var(--baseline-icon-limited-back, #C6C6C6)\"/>\n  <path d=\"M330 180L300 210L390 300L420 270L330 180Z\" fill=\"var(--baseline-icon-limited-front, #F09409)\"/>\n  <path d=\"M120 30L150 60L60 150L150 240L120 270L0 150L120 30Z\" fill=\"var(--baseline-icon-limited-back, #C6C6C6)\"/>\n  <path d=\"M390 0L420 30L150 300L120 270L390 0Z\" fill=\"var(--baseline-icon-limited-front, #F09409)\"/>\n</svg>";
+
+},{}],"eifqO":[function(require,module,exports,__globalThis) {
+module.exports = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"36\" height=\"20\" viewBox=\"0 0 540 300\" aria-hidden=\"true\">\n  <path d=\"M150 0L180 30L150 60L120 30L150 0Z\" fill=\"var(--baseline-icon-newly-back, #A8C7FA)\"/>\n  <path d=\"M210 60L240 90L210 120L180 90L210 60Z\" fill=\"var(--baseline-icon-newly-back, #A8C7FA)\"/>\n  <path d=\"M450 60L480 90L450 120L420 90L450 60Z\" fill=\"var(--baseline-icon-newly-back, #A8C7FA)\"/>\n  <path d=\"M510 120L540 150L510 180L480 150L510 120Z\" fill=\"var(--baseline-icon-newly-back, #A8C7FA)\"/>\n  <path d=\"M450 180L480 210L450 240L420 210L450 180Z\" fill=\"var(--baseline-icon-newly-back, #A8C7FA)\"/>\n  <path d=\"M390 240L420 270L390 300L360 270L390 240Z\" fill=\"var(--baseline-icon-newly-back, #A8C7FA)\"/>\n  <path d=\"M330 180L360 210L330 240L300 210L330 180Z\" fill=\"var(--baseline-icon-newly-back, #A8C7FA)\"/>\n  <path d=\"M90 60L120 90L90 120L60 90L90 60Z\" fill=\"var(--baseline-icon-newly-back, #A8C7FA)\"/>\n  <path d=\"M390 0L420 30L150 300L0 150L30 120L150 240L390 0Z\" fill=\"var(--baseline-icon-newly-front, #1B6EF3)\"/>\n</svg>";
+
+},{}],"jIQTc":[function(require,module,exports,__globalThis) {
+module.exports = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"36\" height=\"20\" viewBox=\"0 0 540 300\" aria-hidden=\"true\">\n  <path d=\"M420 30L390 60L480 150L390 240L330 180L300 210L390 300L540 150L420 30Z\" fill=\"var(--baseline-icon-widely-back, #C4EED0)\"/>\n  <path d=\"M150 0L30 120L60 150L150 60L210 120L240 90L150 0Z\" fill=\"var(--baseline-icon-widely-back, #C4EED0)\"/>\n  <path d=\"M390 0L420 30L150 300L0 150L30 120L150 240L390 0Z\" fill=\"var(--baseline-icon-widely-front, #1EA446)\"/>\n</svg>";
+
+},{}],"gxR52":[function(require,module,exports,__globalThis) {
+module.exports = "<svg viewBox=\"0 0 20 20\" width=\"20\" height=\"20\" aria-hidden=\"true\">\n  <rect x=\"3\" y=\"3\" width=\"14\" height=\"14\" transform=\"rotate(45 10 10)\" fill=\"var(--baseline-icon-no_data, #909090)\"/>\n</svg>";
+
+},{}],"1wUVT":[function(require,module,exports,__globalThis) {
+module.exports = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"11\" height=\"7\" viewBox=\"0 0 11 7\" fill=\"none\"><path d=\"M5.5 6.454 0.25 1.204 1.191.263 5.5 4.594 9.809.285 10.75 1.225 5.5 6.454Z\" fill=\"currentColor\"/></svg>";
+
+},{}],"dDKFp":[function(require,module,exports,__globalThis) {
+module.exports = "<html><head></head><body><details open=\"\" data-baseline=\"loading\">\n  <summary aria-label=\"Baseline: Loading\">\n    <div class=\"summary-top\">\n      <span class=\"name\">{{featureName}}</span>\n    </div>\n    <div class=\"summary-bottom\">\n      {{baselineGlyph}}\n      <div class=\"baseline-status-title\" aria-hidden=\"true\">\n        <div><strong>Baseline</strong> Loading</div>\n        <div class=\"baseline-status-browsers\">\n          <span>{{chromeIcon}} {{noDataIcon}}</span>\n          <span>{{edgeIcon}} {{noDataIcon}}</span>\n          <span>{{firefoxIcon}} {{noDataIcon}}</span>\n          <span>{{safariIcon}} {{noDataIcon}}</span>\n        </div>\n      </div>\n      <span class=\"open-icon\" aria-hidden=\"true\"> {{chevronIcon}} </span>\n    </div>\n  </summary>\n  <p>Loading Baseline data...</p>\n</details>\n<script src=\"/kinetic-css.dd61bbfa.js\"></script></body></html>";
+
+},{}],"j2xQg":[function(require,module,exports,__globalThis) {
+module.exports = "<html><head></head><body><details data-baseline=\"{{baseline}}\">\n  <summary aria-label=\"{{aria}}\">\n    <div class=\"summary-top\">\n      <p class=\"name\">{{name}}</p>\n      <p class=\"since\">{{since}}</p>\n    </div>\n    <div class=\"summary-bottom\">\n      <div class=\"baseline-status-title\" aria-hidden=\"true\">\n        <div>{{baselineGlyph}} {{title}}</div>\n        <div class=\"baseline-status-browsers\">\n          <span>{{chromeIcon}} {{chromeSupport}}</span>\n          <span>{{edgeIcon}} {{edgeSupport}}</span>\n          <span>{{firefoxIcon}} {{firefoxSupport}}</span>\n          <span>{{safariIcon}} {{safariSupport}}</span>\n        </div>\n        <span class=\"open-icon\" aria-hidden=\"true\">{{chevronIcon}}</span>\n      </div>\n    </div>\n  </summary>\n  <p>{{description}} {{learnMore}}</p>\n</details>\n<script src=\"/kinetic-css.df678803.js\"></script></body></html>";
+
+},{}],"61ORP":[function(require,module,exports,__globalThis) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "formatBaselineDate", ()=>formatBaselineDate);
+parcelHelpers.export(exports, "getBaselineDateParts", ()=>getBaselineDateParts);
+parcelHelpers.export(exports, "getLatestImplementationDateParts", ()=>getLatestImplementationDateParts);
+parcelHelpers.export(exports, "descriptionFor", ()=>descriptionFor);
+parcelHelpers.export(exports, "renderSupportIcon", ()=>renderSupportIcon);
+parcelHelpers.export(exports, "renderBaselineGlyph", ()=>renderBaselineGlyph);
+parcelHelpers.export(exports, "renderTemplate", ()=>renderTemplate);
+parcelHelpers.export(exports, "ensureStyles", ()=>ensureStyles);
+parcelHelpers.export(exports, "escapeHTML", ()=>escapeHTML);
+parcelHelpers.export(exports, "escapeAttr", ()=>escapeAttr);
+parcelHelpers.export(exports, "svgToDataUri", ()=>svgToDataUri);
+parcelHelpers.export(exports, "svgToImgTag", ()=>svgToImgTag);
+var _baselineStatusConstantsJs = require("./baseline-status.constants.js");
+function formatBaselineDate(feature) {
+    const d = feature?.baseline?.low_date;
+    if (!d) return "";
+    try {
+        return new Intl.DateTimeFormat("en-US", {
+            year: "numeric",
+            month: "long"
+        }).format(new Date(d));
+    } catch  {
+        return "";
+    }
+}
+function descriptionFor(baseline, date) {
+    if (baseline === "newly" && date) return `Since ${date} this feature works across the latest devices and browser versions. This feature might not work in older devices or browsers.`;
+    if (baseline === "widely" && date) return `This feature is well established and works across many devices and browser versions. It has been available across browsers since ${date}.`;
+    return (0, _baselineStatusConstantsJs.BASELINE_DEFS)[baseline]?.defaultDescription || (0, _baselineStatusConstantsJs.BASELINE_DEFS).no_data.defaultDescription;
+}
+function renderSupportIcon(baseline, browserImplementation) {
+    const support = baseline === "limited" ? browserImplementation?.status || "unavailable" : baseline;
+    const iconKey = support === "newly" || support === "widely" ? "available" : support;
+    const cls = `support-${support}`;
+    const svg = (0, _baselineStatusConstantsJs.SUPPORT_ICONS)[iconKey] || (0, _baselineStatusConstantsJs.SUPPORT_ICONS).no_data;
+    return `<span class="${cls}" aria-hidden="true">${svg}</span>`;
+}
+function renderBaselineGlyph(support) {
+    if (support === "limited") return 0, _baselineStatusConstantsJs.GLYPH_BASELINE_LIMITED;
+    if (support === "newly") return 0, _baselineStatusConstantsJs.GLYPH_BASELINE_NEWLY;
+    if (support === "widely") return 0, _baselineStatusConstantsJs.GLYPH_BASELINE_WIDELY;
+    return 0, _baselineStatusConstantsJs.GLYPH_BASELINE_NO_DATA;
+}
+function renderTemplate(tpl, map) {
+    return tpl.replace(/\{\{(.*?)\}\}/g, (_, k)=>map[k.trim()] ?? "");
+}
+function ensureStyles(cssText) {
+    const STYLE_ID = "baseline-status-component-styles";
+    if (document.getElementById(STYLE_ID)) return;
+    const style = document.createElement("style");
+    style.id = STYLE_ID;
+    style.textContent = cssText;
+    document.head.appendChild(style);
+}
+// Return a robust pair { label: 'Month Year', year: 'YYYY' } from feature.baseline.low_date
+function getBaselineDateParts(feature) {
+    const raw = feature?.baseline?.low_date;
+    if (!raw) return {
+        label: "",
+        year: ""
+    };
+    let dateObj = null;
+    // string like '2024-08-21' or '2024'
+    if (typeof raw === "string") {
+        const parsed = Date.parse(raw);
+        if (!Number.isNaN(parsed)) dateObj = new Date(parsed);
+        else if (/^\d{4}$/.test(raw)) dateObj = new Date(Number(raw), 0, 1);
+    }
+    // number epoch (seconds or ms)
+    if (typeof raw === "number") dateObj = new Date(raw < 1e12 ? raw * 1000 : raw);
+    // object with fields {year, month}
+    if (!dateObj && typeof raw === "object") {
+        const y = Number(raw.year);
+        const m = raw.month != null ? Number(raw.month) - 1 : 0; // 1-based to 0-based
+        if (!Number.isNaN(y)) dateObj = new Date(y, !Number.isNaN(m) ? m : 0, 1);
+    }
+    if (!dateObj || Number.isNaN(dateObj.getTime())) return {
+        label: "",
+        year: ""
+    };
+    try {
+        const label = new Intl.DateTimeFormat("en-US", {
+            month: "long",
+            year: "numeric"
+        }).format(dateObj);
+        const year = String(dateObj.getFullYear());
+        return {
+            label,
+            year
+        };
+    } catch  {
+        return {
+            label: "",
+            year: ""
+        };
+    }
+}
+// Return the most recent date across all browser implementations: { label, year }
+function getLatestImplementationDateParts(feature) {
+    const impl = feature?.browser_implementations;
+    if (!impl || typeof impl !== "object") return {
+        label: "",
+        year: ""
+    };
+    const parseDate = (raw)=>{
+        if (!raw) return null;
+        let d = null;
+        if (typeof raw === "string") {
+            const parsed = Date.parse(raw);
+            if (!Number.isNaN(parsed)) d = new Date(parsed);
+            else if (/^\d{4}$/.test(raw)) d = new Date(Number(raw), 0, 1);
+        } else if (typeof raw === "number") d = new Date(raw < 1e12 ? raw * 1000 : raw);
+        else if (typeof raw === "object") {
+            const y = Number(raw.year);
+            const m = raw.month != null ? Number(raw.month) - 1 : 0;
+            if (!Number.isNaN(y)) d = new Date(y, !Number.isNaN(m) ? m : 0, 1);
+        }
+        return d && !Number.isNaN(d.getTime()) ? d : null;
+    };
+    let latest = null;
+    for (const key of Object.keys(impl)){
+        const date = parseDate(impl[key]?.date);
+        if (date && (!latest || date > latest)) latest = date;
+    }
+    if (!latest) return {
+        label: "",
+        year: ""
+    };
+    try {
+        const label = new Intl.DateTimeFormat("en-US", {
+            month: "long",
+            year: "numeric"
+        }).format(latest);
+        const year = String(latest.getFullYear());
+        return {
+            label,
+            year
+        };
+    } catch  {
+        return {
+            label: "",
+            year: ""
+        };
+    }
+}
+// Escape utilities to protect HTML/attribute contexts when injecting dynamic text
+function escapeHTML(value) {
+    return String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+function escapeAttr(value) {
+    // For simplicity use same escaping as HTML text since we place values inside double quotes
+    return escapeHTML(value);
+}
+// Convert an inline SVG markup string into a data URI string.
+// This isolates <defs> ids and avoids cross-instance collisions in the DOM.
+function svgToDataUri(svg) {
+    if (!svg) return "";
+    // Ensure XML is compact for URI length and avoid stray whitespace
+    const cleaned = String(svg).replace(/\n+/g, "").replace(/>\s+</g, "><").trim();
+    const encoded = encodeURIComponent(cleaned)// EncodeURIComponent already encodes most characters; keep SVG friendly
+    .replace(/%20/g, " ");
+    return `data:image/svg+xml;utf8,${encoded}`;
+}
+// Build an <img> tag string for a given inline SVG string.
+// width/height are optional; if missing, try to infer from the svg tag or default to 21.
+function svgToImgTag(svg, { width, height, className = "browser-icon" } = {}) {
+    if (!svg) return "";
+    let w = width;
+    let h = height;
+    if (w == null || h == null) {
+        const m = String(svg).match(/<svg[^>]*\bwidth=["']?(\d+)["']?[^>]*\bheight=["']?(\d+)["']?[^>]*>/i);
+        if (m) {
+            w = w ?? Number(m[1]);
+            h = h ?? Number(m[2]);
+        }
+    }
+    w = w ?? 21;
+    h = h ?? 21;
+    const src = svgToDataUri(svg);
+    return `<img class="${escapeAttr(className)}" alt="" aria-hidden="true" role="presentation" src="${escapeAttr(src)}" width="${escapeAttr(String(w))}" height="${escapeAttr(String(h))}" />`;
+}
+
+},{"./baseline-status.constants.js":"cxNiv","@parcel/transformer-js/src/esmodule-helpers.js":"2qhxn"}],"8IfSn":[function(require,module,exports,__globalThis) {
+// Doodle JS - Fresh start: draggable title
+document.addEventListener("DOMContentLoaded", ()=>{
+    const title = document.querySelector(".title");
+    const stage = title?.closest(".stage");
+    if (title && stage) {
+        const clampPercentage = (value)=>Math.max(0, Math.min(100, value));
+        const formatPercent = (value)=>`${value.toFixed(3)}%`;
+        const trailConfigs = [
+            {
+                selector: ".orbit--inner",
+                speed: 0.27
+            },
+            {
+                selector: ".orbit--middle",
+                speed: 0.2
+            },
+            {
+                selector: ".orbit--outer",
+                speed: 0.13
+            },
+            {
+                selector: ".orbit--fourth",
+                speed: 0.09
+            },
+            {
+                selector: ".orbit--fifth",
+                speed: 0.06
+            }
+        ];
+        const orbitTrail = trailConfigs.map((config)=>{
+            const element = stage.querySelector(config.selector);
+            if (!element) return null;
+            const state = {
+                element,
+                speed: config.speed,
+                currentX: 50,
+                currentY: 50,
+                targetX: 50,
+                targetY: 50
+            };
+            element.style.setProperty("--doodle-orbit-x", formatPercent(state.currentX));
+            element.style.setProperty("--doodle-orbit-y", formatPercent(state.currentY));
+            return state;
+        }).filter(Boolean);
+        const animateOrbitTrail = ()=>{
+            orbitTrail.forEach((orbit)=>{
+                orbit.currentX += (orbit.targetX - orbit.currentX) * orbit.speed;
+                orbit.currentY += (orbit.targetY - orbit.currentY) * orbit.speed;
+                orbit.element.style.setProperty("--doodle-orbit-x", formatPercent(orbit.currentX));
+                orbit.element.style.setProperty("--doodle-orbit-y", formatPercent(orbit.currentY));
+            });
+            requestAnimationFrame(animateOrbitTrail);
+        };
+        if (orbitTrail.length) requestAnimationFrame(animateOrbitTrail);
+        let autoFrameId = null;
+        let autoListenersAttached = false;
+        let autoPlaying = true;
+        let autoPhase = 0;
+        let lastAutoTimestamp = null;
+        const handleUserPointer = ()=>{
+            disableAutoMotion();
+        };
+        const disableAutoMotion = ()=>{
+            if (!autoPlaying) return;
+            autoPlaying = false;
+            if (autoFrameId !== null) {
+                cancelAnimationFrame(autoFrameId);
+                autoFrameId = null;
+            }
+            if (autoListenersAttached) {
+                stage.removeEventListener("pointermove", handleUserPointer);
+                stage.removeEventListener("pointerdown", handleUserPointer);
+                autoListenersAttached = false;
+            }
+            lastAutoTimestamp = null;
+        };
+        const enableAutoListeners = ()=>{
+            if (autoListenersAttached) return;
+            stage.addEventListener("pointermove", handleUserPointer, {
+                passive: true
+            });
+            stage.addEventListener("pointerdown", handleUserPointer);
+            autoListenersAttached = true;
+        };
+        const animateAutoMotion = (timestamp)=>{
+            if (!autoPlaying) return;
+            const cycle = 6000;
+            if (lastAutoTimestamp !== null) autoPhase += (timestamp - lastAutoTimestamp) / cycle;
+            lastAutoTimestamp = timestamp;
+            autoPhase %= 1;
+            const angle = autoPhase * Math.PI * 2;
+            const sinAngle = Math.sin(angle);
+            const cosAngle = Math.cos(angle);
+            const denom = sinAngle * sinAngle + 1;
+            const rawX = cosAngle / denom;
+            const rawY = sinAngle * cosAngle / denom;
+            const px = 50 + rawX * 26;
+            const py = 50 + rawY * 18;
+            setPosition(px, py);
+            autoFrameId = requestAnimationFrame(animateAutoMotion);
+        };
+        const startAutoMotion = ()=>{
+            autoPlaying = true;
+            enableAutoListeners();
+            if (autoFrameId !== null) cancelAnimationFrame(autoFrameId);
+            lastAutoTimestamp = null;
+            autoFrameId = requestAnimationFrame(animateAutoMotion);
+        };
+        const setPosition = (px, py)=>{
+            const clampedX = clampPercentage(px);
+            const clampedY = clampPercentage(py);
+            const xValue = formatPercent(clampedX);
+            const yValue = formatPercent(clampedY);
+            stage.style.setProperty("--doodle-title-x", xValue);
+            stage.style.setProperty("--doodle-title-y", yValue);
+            title.style.setProperty("--doodle-title-x", xValue);
+            title.style.setProperty("--doodle-title-y", yValue);
+            orbitTrail.forEach((orbit)=>{
+                orbit.targetX = clampedX;
+                orbit.targetY = clampedY;
+            });
+        };
+        const calibrateVisualOffset = (attempt = 0)=>{
+            if (attempt > 5) return;
+            const styles = getComputedStyle(stage);
+            const posX = Number.parseFloat(styles.getPropertyValue("--doodle-title-x")) || 50;
+            const posY = Number.parseFloat(styles.getPropertyValue("--doodle-title-y")) || 50;
+            if (Math.abs(posX - 50) > 0.5 || Math.abs(posY - 50) > 0.5) return;
+            const stageRect = stage.getBoundingClientRect();
+            const titleRect = title.getBoundingClientRect();
+            if (!stageRect.height || !titleRect.height) return;
+            const delta = titleRect.top - stageRect.top + titleRect.height / 2 - stageRect.height / 2;
+            if (Math.abs(delta) < 0.2) return;
+            const computedOffset = getComputedStyle(stage).getPropertyValue("--doodle-title-offset");
+            const currentOffset = Number.parseFloat(computedOffset) || 0;
+            stage.style.setProperty("--doodle-title-offset", `${currentOffset + delta}px`);
+            requestAnimationFrame(()=>calibrateVisualOffset(attempt + 1));
+        };
+        let calibrationFrame = null;
+        const scheduleCalibration = ()=>{
+            if (calibrationFrame !== null) return;
+            calibrationFrame = requestAnimationFrame(()=>{
+                calibrationFrame = null;
+                calibrateVisualOffset();
+            });
+        };
+        let dragging = false;
+        let offsetX = 0;
+        let offsetY = 0;
+        const onPointerDown = (ev)=>{
+            ev.preventDefault();
+            handleUserPointer();
+            dragging = true;
+            title.setPointerCapture?.(ev.pointerId);
+            const rect = title.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            offsetX = centerX - ev.clientX;
+            offsetY = centerY - ev.clientY;
+        };
+        const onPointerMove = (ev)=>{
+            if (!dragging) return;
+            ev.preventDefault();
+            const stageRect = stage.getBoundingClientRect();
+            const newCenterX = ev.clientX + offsetX;
+            const newCenterY = ev.clientY + offsetY;
+            const px = (newCenterX - stageRect.left) / stageRect.width * 100;
+            const py = (newCenterY - stageRect.top) / stageRect.height * 100;
+            setPosition(px, py);
+        };
+        const onPointerUp = (ev)=>{
+            if (!dragging) return;
+            ev.preventDefault();
+            dragging = false;
+            title.releasePointerCapture?.(ev.pointerId);
+            scheduleCalibration();
+        };
+        title.addEventListener("pointerdown", onPointerDown);
+        title.addEventListener("pointermove", onPointerMove);
+        title.addEventListener("pointerup", onPointerUp);
+        title.addEventListener("pointercancel", onPointerUp);
+        title.addEventListener("keydown", (e)=>{
+            const step = 2; // 2%
+            const styles = getComputedStyle(stage);
+            const currentX = Number.parseFloat(styles.getPropertyValue("--doodle-title-x") || "50");
+            const currentY = Number.parseFloat(styles.getPropertyValue("--doodle-title-y") || "50");
+            let px = currentX;
+            let py = currentY;
+            if (e.key === "ArrowLeft") px -= step;
+            else if (e.key === "ArrowRight") px += step;
+            else if (e.key === "ArrowUp") py -= step;
+            else if (e.key === "ArrowDown") py += step;
+            else return;
+            e.preventDefault();
+            setPosition(px, py);
+            scheduleCalibration();
+        });
+        let resizeFrame = null;
+        window.addEventListener("resize", ()=>{
+            if (resizeFrame) cancelAnimationFrame(resizeFrame);
+            resizeFrame = requestAnimationFrame(()=>{
+                resizeFrame = null;
+                scheduleCalibration();
+            });
+        });
+        if (document.fonts?.ready) document.fonts.ready.then(()=>{
+            scheduleCalibration();
+        });
+        setPosition(50, 50);
+        startAutoMotion();
+        scheduleCalibration();
+    }
+});
+
+},{}],"292LN":[function(require,module,exports,__globalThis) {
 /**
- * Reveal.js slide change hooks
- * Triggers animations when slides become visible
- */ const initSlideHooks = ()=>{
+ * Reveal slide hooks
+ *
+ * Purpose:
+ * - Add a minimal accessibility enhancement when the slide changes.
+ *
+ * DOM contract:
+ * - When Reveal is available, on each slide change:
+ *   - Find `.motion-title` inside the active slide.
+ *   - Set `aria-live="polite"` so screen readers can announce it.
+ */ var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "initSlideHooks", ()=>initSlideHooks);
+const initSlideHooks = ()=>{
     if (typeof Reveal === "undefined") return;
     Reveal.on("slidechanged", (event)=>{
         const currentSlide = event.currentSlide;
-        const topic = currentSlide?.dataset?.topic;
-        // Reset and trigger animations based on topic
-        topic;
-        // Announce slide change for screen readers
         const title = currentSlide?.querySelector(".motion-title");
         if (title) title.setAttribute("aria-live", "polite");
     });
 };
-/**
- * Initialize all motion JavaScript
- */ const initMotion = ()=>{
-    if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", ()=>{
-            initViewTransitions();
-            initDeepCards();
-            initDiscretePanels();
-            initTrigAnimation();
-            initFinaleProximity();
-            initSlideHooks();
-        });
-        return;
-    }
-    initViewTransitions();
-    initDeepCards();
-    initDiscretePanels();
-    initTrigAnimation();
-    initFinaleProximity();
-    initSlideHooks();
-};
-initMotion();
 
-},{}]},["9GvwX","8JWvp"], "8JWvp", "parcelRequired35b", {})
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"2qhxn"}],"iJGvL":[function(require,module,exports,__globalThis) {
+/**
+ * Tilt Layered Card interactions
+ *
+ * Purpose:
+ * - Track pointer position and expose it to CSS as --tilt-card--pos-x and --tilt-card--pos-y.
+ *
+ * DOM contract:
+ * - Requires one or more elements matching `.card-container`.
+ * - Each container receives CSS custom properties:
+ *   - --tilt-card--pos-x: number in range [-1, 1]
+ *   - --tilt-card--pos-y: number in range [-1, 1]
+ */ var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "initTiltLayeredCard", ()=>initTiltLayeredCard);
+const clamp = (value, min, max)=>Math.min(max, Math.max(min, value));
+const initTiltLayeredCard = ()=>{
+    const containers = document.querySelectorAll(".card-container");
+    if (containers.length === 0) return;
+    containers.forEach((container)=>{
+        let isDragging = false;
+        const updateFromPointer = (event)=>{
+            const rect = container.getBoundingClientRect();
+            const x = clamp((event.clientX - rect.left) / rect.width * 2 - 1, -1, 1);
+            const y = clamp((event.clientY - rect.top) / rect.height * 2 - 1, -1, 1);
+            container.style.setProperty("--tilt-card--pos-x", x.toFixed(3));
+            container.style.setProperty("--tilt-card--pos-y", y.toFixed(3));
+        };
+        const resetPointer = ()=>{
+            container.style.removeProperty("--tilt-card--pos-x");
+            container.style.removeProperty("--tilt-card--pos-y");
+        };
+        container.addEventListener("pointerdown", (event)=>{
+            if (event.button !== 0) return;
+            isDragging = true;
+            container.classList.add("is-dragging");
+            container.setPointerCapture(event.pointerId);
+            updateFromPointer(event);
+        });
+        container.addEventListener("pointermove", (event)=>{
+            if (!isDragging) return;
+            updateFromPointer(event);
+        });
+        const stopDrag = (event)=>{
+            if (!isDragging) return;
+            isDragging = false;
+            container.classList.remove("is-dragging");
+            resetPointer();
+            try {
+                container.releasePointerCapture(event.pointerId);
+            } catch  {
+            // Ignore if capture was already released.
+            }
+        };
+        container.addEventListener("pointerup", stopDrag);
+        container.addEventListener("pointercancel", stopDrag);
+        container.addEventListener("pointerleave", ()=>{
+            if (isDragging) return;
+            resetPointer();
+        });
+    });
+};
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"2qhxn"}]},["9GvwX","8JWvp"], "8JWvp", "parcelRequired35b", {})
 
 //# sourceMappingURL=kinetic-css.c6396971.js.map

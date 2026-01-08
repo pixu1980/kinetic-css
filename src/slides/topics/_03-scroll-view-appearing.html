@@ -1,0 +1,162 @@
+<!-- Slide: Scroll View Appearing Animation -->
+<!-- Speaker notes: Demonstrates scroll-driven animations that make elements appear as they enter the viewport. Using animation-timeline: view() for smooth, performance-optimized reveal animations. -->
+<section>
+  <section data-topic="scroll-view-appearing" data-menu-title="Scroll View Appearing">
+    <h4 balance>
+      <mark>Scroll-driven</mark> Container <br />
+      with Appearing <del>Cards</del>&nbsp;<mark>Logos</mark>
+    </h4>
+  </section>
+  <section data-topic="scroll-view-appearing" data-menu-title="Scroll View Appearing">
+    <div class="scroll-view-container">
+      <div class="scroll-view-card">
+        <div class="card-inner">
+          <img src="./assets/sponsors/42de.webp" alt="42DE" loading="lazy" />
+          <h5>42DE</h5>
+        </div>
+      </div>
+      <div class="scroll-view-card">
+        <div class="card-inner">
+          <img src="./assets/sponsors/andrea-carratta.webp" alt="Andrea Carratta" loading="lazy" />
+          <h5>Andrea Carratta</h5>
+        </div>
+      </div>
+      <div class="scroll-view-card">
+        <div class="card-inner">
+          <img src="./assets/sponsors/arrow-worm.webp" alt="Arrow Worm" loading="lazy" />
+          <h5>Arrow Worm</h5>
+        </div>
+      </div>
+      <div class="scroll-view-card">
+        <div class="card-inner">
+          <img src="./assets/sponsors/ciabot.webp" alt="Ciabot" loading="lazy" />
+          <h5>Ciabot</h5>
+        </div>
+      </div>
+      <div class="scroll-view-card">
+        <div class="card-inner">
+          <img src="./assets/sponsors/fattutto.webp" alt="Fattutto" loading="lazy" />
+          <h5>Fattutto</h5>
+        </div>
+      </div>
+      <div class="scroll-view-card">
+        <div class="card-inner">
+          <img src="./assets/sponsors/geeks-creations.webp" alt="Geeks Creations" loading="lazy" />
+          <h5>Geeks Creations</h5>
+        </div>
+      </div>
+      <div class="scroll-view-card">
+        <div class="card-inner">
+          <img src="./assets/sponsors/hotel-cube.webp" alt="Hotel Cube" loading="lazy" />
+          <h5>Hotel Cube</h5>
+        </div>
+      </div>
+      <div class="scroll-view-card">
+        <div class="card-inner">
+          <img src="./assets/sponsors/kaysoft.webp" alt="Kaysoft" loading="lazy" />
+          <h5>Kaysoft</h5>
+        </div>
+      </div>
+      <div class="scroll-view-card">
+        <div class="card-inner">
+          <img src="./assets/sponsors/namirial.webp" alt="Namirial" loading="lazy" />
+          <h5>Namirial</h5>
+        </div>
+      </div>
+      <div class="scroll-view-card">
+        <div class="card-inner">
+          <img src="./assets/sponsors/nopos.webp" alt="Nopos" loading="lazy" />
+          <h5>Nopos</h5>
+        </div>
+      </div>
+      <div class="scroll-view-card">
+        <div class="card-inner">
+          <img src="./assets/sponsors/orbyta-tech.webp" alt="Orbyta Tech" loading="lazy" />
+          <h5>Orbyta Tech</h5>
+        </div>
+      </div>
+      <div class="scroll-view-card">
+        <div class="card-inner">
+          <img src="./assets/sponsors/quantik-mind.webp" alt="Quantik Mind" loading="lazy" />
+          <h5>Quantik Mind</h5>
+        </div>
+      </div>
+      <div class="scroll-view-card">
+        <div class="card-inner">
+          <img src="./assets/sponsors/storyblok.webp" alt="Storyblok" loading="lazy" />
+          <h5>Storyblok</h5>
+        </div>
+      </div>
+      <div class="scroll-view-card">
+        <div class="card-inner">
+          <img src="./assets/sponsors/taktik-flowr.webp" alt="Taktik Flowr" loading="lazy" />
+          <h5>Taktik Flowr</h5>
+        </div>
+      </div>
+      <div class="scroll-view-card">
+        <div class="card-inner">
+          <img src="./assets/sponsors/torino-dotnet.webp" alt="Torino .NET" loading="lazy" />
+          <h5>Torino .NET</h5>
+        </div>
+      </div>
+      <div class="scroll-view-card">
+        <div class="card-inner">
+          <img src="./assets/sponsors/welyk.webp" alt="Welyk" loading="lazy" />
+          <h5>Welyk</h5>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section data-topic="scroll-view-appearing" data-menu-title="Scroll View Appearing">
+    <small balance> Using <mark>animation-timeline: view()</mark> to drive reveal animations based on viewport intersection. </small>
+    <pre><code class="hljs css" data-trim data-line-numbers="|2-10|14-19|21-35">
+@supports (animation-timeline: view(inline)) {
+  .scroll-view-card {
+    animation: reveal-and-elevate 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+
+    /* Precise control over animation range */
+    animation-range:
+      entry 35% /* start after element enters from right by its 35% */
+      cover 70%; /* end 70% through cover phase */
+
+    animation-timeline: view(inline);
+  }
+}
+
+@supports not (animation-timeline: view(inline)) {
+  .scroll-view-card {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes reveal-and-elevate {
+  0% {
+    opacity: 0;
+    transform: scale(0.85) translateY(8rem);
+    filter: blur(8px);
+  }
+
+  50% { filter: blur(4px); }
+
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0);
+  }
+}
+    </code></pre>
+    <aside class="notes">
+      animation-timeline: view(inline) ties the animation to the element's position in a horizontal scroll viewport. entry 0% means the animation starts as soon as the element enters the viewport.
+      cover 30% means it reaches its final state after traversing 30% of the viewport. This ensures elements reveal quickly as they scroll into view.
+    </aside>
+  </section>
+  <section data-topic="scroll-view-appearing" data-menu-title="Scroll View Appearing">
+    <h3><mark>scroll-driven</mark> Animations</h3>
+    <small balance>
+      The animation-timeline, scroll-timeline, and view-timeline CSS properties advance animations based on the user's scroll position. Here using <mark>animation-timeline: view(inline)</mark> for native scroll-driven effects, no JavaScript required.
+    </small>
+    <baseline-status featureId="scroll-driven-animations"></baseline-status>
+  </section>
+</section>

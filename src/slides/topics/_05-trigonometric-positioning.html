@@ -1,0 +1,133 @@
+<!-- Slide: Trigonometric Positioning & Animation -->
+<!-- Speaker notes: Demonstrates using trigonometric functions (sin, cos, tan) to create circular orbits, wave patterns, and complex spatial arrangements using pure CSS math. -->
+<section>
+  <section data-topic="trigonometric-positioning" data-menu-title="Trigonometry in Motion">
+    <h4 balance>
+      Our Sponsors along a <br />
+      sneaking <mark>sinusoidal wave</mark>
+    </h4>
+  </section>
+  <section data-topic="trigonometric-positioning" data-menu-title="Trigonometry in Motion">
+    <div class="trigonometric-sponsors-wave">
+      <!-- 16 sponsor logos positioned along a sinusoidal wave -->
+      <div class="sponsor-wave-item" style="--index: 0">
+        <img src="./assets/sponsors/42de.webp" alt="42DE" loading="lazy" />
+      </div>
+      <div class="sponsor-wave-item" style="--index: 1">
+        <img src="./assets/sponsors/andrea-carratta.webp" alt="Andrea Carratta" loading="lazy" />
+      </div>
+      <div class="sponsor-wave-item" style="--index: 2">
+        <img src="./assets/sponsors/arrow-worm.webp" alt="Arrow Worm" loading="lazy" />
+      </div>
+      <div class="sponsor-wave-item" style="--index: 3">
+        <img src="./assets/sponsors/ciabot.webp" alt="Ciabot" loading="lazy" />
+      </div>
+      <div class="sponsor-wave-item" style="--index: 4">
+        <img src="./assets/sponsors/fattutto.webp" alt="Fattutto" loading="lazy" />
+      </div>
+      <div class="sponsor-wave-item" style="--index: 5">
+        <img src="./assets/sponsors/geeks-creations.webp" alt="Geeks Creations" loading="lazy" />
+      </div>
+      <div class="sponsor-wave-item" style="--index: 6">
+        <img src="./assets/sponsors/hotel-cube.webp" alt="Hotel Cube" loading="lazy" />
+      </div>
+      <div class="sponsor-wave-item" style="--index: 7">
+        <img src="./assets/sponsors/kaysoft.webp" alt="Kaysoft" loading="lazy" />
+      </div>
+      <div class="sponsor-wave-item" style="--index: 8">
+        <img src="./assets/sponsors/namirial.webp" alt="Namirial" loading="lazy" />
+      </div>
+      <div class="sponsor-wave-item" style="--index: 9">
+        <img src="./assets/sponsors/nopos.webp" alt="Nopos" loading="lazy" />
+      </div>
+      <div class="sponsor-wave-item" style="--index: 10">
+        <img src="./assets/sponsors/orbyta-tech.webp" alt="Orbyta Tech" loading="lazy" />
+      </div>
+      <div class="sponsor-wave-item" style="--index: 11">
+        <img src="./assets/sponsors/quantik-mind.webp" alt="Quantik Mind" loading="lazy" />
+      </div>
+      <div class="sponsor-wave-item" style="--index: 12">
+        <img src="./assets/sponsors/storyblok.webp" alt="Storyblok" loading="lazy" />
+      </div>
+      <div class="sponsor-wave-item" style="--index: 13">
+        <img src="./assets/sponsors/taktik-flowr.webp" alt="Taktik Flowr" loading="lazy" />
+      </div>
+      <div class="sponsor-wave-item" style="--index: 14">
+        <img src="./assets/sponsors/torino-dotnet.webp" alt="Torino .NET" loading="lazy" />
+      </div>
+      <div class="sponsor-wave-item" style="--index: 15">
+        <img src="./assets/sponsors/welyk.webp" alt="Welyk" loading="lazy" />
+      </div>
+    </div>
+  </section>
+  <section data-topic="trigonometric-positioning" data-menu-title="Trigonometry in Motion">
+    <small balance> Position elements along a sinusoidal wave using <mark>sin()</mark> with animated phase offset.</small>
+    <pre>
+      <code class="hljs css" data-trim data-line-numbers="|2-10|15-28|33-41|43-50">
+.trigonometric-sponsors-wave {
+  --wave-length: 360deg;
+  --wave-amplitude: 15rem;
+  --steps: calc(sibling-count() - 1);
+
+  --scale-min: 0.8;
+  --scale-max: 1.25;
+
+  --logo-size-min: 12rem;
+  --logo-gap: clamp(0.4rem, 0.9vw, 0.6rem);
+
+  ...
+}
+
+.sponsor-wave-item {
+  --index: calc(sibling-index() - 1);
+  
+  width: var(--logo-size-min);
+  height: var(--logo-size-min);
+  left: calc((var(--index) / var(--steps)) * 100%);
+
+  transform: 
+    translateX(calc(-50% + var(--index) * var(--logo-gap)))
+    translateY(-50%);
+  will-change: left, transform;
+
+  animation: sponsor-travel 12s ease-in-out infinite;
+}
+
+/* Move each logo along the wave by shifting its parameter (index + travel).
+  We animate real properties (left/transform/filter), so it stays smooth without @property registration. */
+@keyframes sponsor-travel {
+  0%,
+  100% {
+    /* travel = -3 (can go out of bounds, container clips it) */
+    left: calc(((var(--index) - 3) / var(--steps)) * 100%);
+    transform: 
+      translateX(calc(-50% + var(--index) * var(--logo-gap)))
+      translateY(calc(-50% + var(--wave-amplitude) * sin(calc((var(--index) - 3) / var(--steps) * var(--wave-length)))))
+      scale(calc(var(--scale-min) + (var(--scale-max) - var(--scale-min)) * ((sin(calc((var(--index) - 3) / var(--steps) * var(--wave-length))) + 1) / 2)));
+  }
+
+  50% {
+    /* travel = +3 */
+    left: calc(((var(--index) + 3) / var(--steps)) * 100%);
+    transform: 
+      translateX(calc(-50% + var(--index) * var(--logo-gap)))
+      translateY(calc(-50% + var(--wave-amplitude) * sin(calc((var(--index) + 3) / var(--steps) * var(--wave-length)))))
+      scale(calc(var(--scale-min) + (var(--scale-max) - var(--scale-min)) * ((sin(calc((var(--index) + 3) / var(--steps) * var(--wave-length))) + 1) / 2)));
+  }
+}
+      </code>
+    </pre>
+    <aside class="notes">
+      Trigonometric CSS functions are now available in the latest versions of Chrome, Firefox, Safari, and Edge. For older browsers, you can provide fallback styles with static positions or implement
+      the calculation in JavaScript.
+    </aside>
+  </section>
+  <section data-topic="trigonometric-positioning" data-menu-title="Trigonometry in Motion">
+    <h4>Trigonometric <mark>Positioning</mark></h4>
+    <small balance>
+      Use <mark>sin()</mark>, <mark>cos()</mark>, and <mark>tan()</mark> to create circular orbits, wave patterns, and dynamic spatial arrangements. Transform Cartesian geometry into visual
+      choreography.
+    </small>
+    <baseline-status featureId="trig-functions"></baseline-status>
+  </section>
+</section>

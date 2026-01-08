@@ -3,3 +3,13 @@
 
 @import "_doodle.css";
 @import "_motion.css";
+
+/* Motion modules - per-slide animations and choreography */
+@import "_00-starting-style.css";
+@import "_01-architecture.css";
+@import "_02-performance.css";
+@import "_03-scroll-view-appearing.css";
+@import "_04-gaussian-curve.css";
+@import "_05-trigonometric-positioning.css";
+@import "_06-sibling-functions.css";
+@import "_07-tilt-layered-card.css";
